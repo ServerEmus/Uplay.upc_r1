@@ -1,0 +1,57 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+	<Platforms>AnyCPU;x86;x64</Platforms>
+	<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+	<IsAotCompatible>True</IsAotCompatible>
+	<PublishAot>true</PublishAot>
+	<AssemblyVersion>158.0.11194.0</AssemblyVersion>
+	<FileVersion>158.0.11194</FileVersion>
+	<Description>Uplay API r1</Description>
+	<Product>Ubisoft</Product>
+	<Copyright>(c) Ubisoft</Copyright>
+	<NeutralLanguage>en-US</NeutralLanguage>
+	<Version>158.0.11194</Version>
+  </PropertyGroup>
+
+	<Choose>
+		<When Condition=" '$(Platform)'=='x64' ">
+			<PropertyGroup>
+				<AssemblyName>upc_r164</AssemblyName>
+			</PropertyGroup>
+		</When>
+		<When Condition=" '$(Platform)'=='x86' ">
+			<PropertyGroup>
+				<AssemblyName>upc_r1</AssemblyName>
+			</PropertyGroup>
+		</When>
+	</Choose>
+
+	<ItemGroup>
+	  <PackageReference Include="BepInEx.AssemblyPublicizer.MSBuild" Version="0.4.3">
+	    <PrivateAssets>all</PrivateAssets>
+	    <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+	  </PackageReference>
+	  <PackageReference Include="StbImageSharp" Version="2.30.15" Publicize="true" />
+	  <PackageReference Include="Uplay-Protobufs" Version="161.1.11646" />
+	  <PackageReference Include="UplayEmus.DllShared" Version="1.0.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Update="upc.json">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Using Include="DllShared.MarshalHelper">
+	    <Static>True</Static>
+	  </Using>
+	  <Using Include="Serilog" />
+	  <Using Include="System.Runtime.CompilerServices" />
+	  <Using Include="System.Runtime.InteropServices" />
+	</ItemGroup>
+</Project>
