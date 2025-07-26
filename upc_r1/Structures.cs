@@ -102,7 +102,7 @@ public struct UPLAY_FRIEND_Friend
     [MarshalAs(UnmanagedType.LPStr)]
     public string nickUtf8;
     [MarshalAs(UnmanagedType.U4)]
-    public UPLAY_FRIENDS_Relationship relationship;
+    public Uplay.Uplaydll.Relationship relationship;
     [MarshalAs(UnmanagedType.U4)]
     public uint avatarId;
     public IntPtr PresencePtr;
@@ -122,6 +122,27 @@ public struct UPLAY_PARTY_Member
     public UPLAY_PARTY_MemberFlag flag;
     public IntPtr presencePtr;
     public IntPtr partyHostIfGuest;
+}
+
+[StructLayout(LayoutKind.Sequential, Pack = 8)]
+public struct UPLAY_WIN_Reward
+{
+    [MarshalAs(UnmanagedType.LPStr)]
+    public string idUtf8;
+    [MarshalAs(UnmanagedType.LPStr)]
+    public string nameUtf8;
+    [MarshalAs(UnmanagedType.LPStr)]
+    public string descriptionUtf8;
+    [MarshalAs(UnmanagedType.LPStr)]
+    public string urlUtf8;
+    public uint Units;
+    [MarshalAs(UnmanagedType.LPStr)]
+    public string gameCodeUtf8;
+    [MarshalAs(UnmanagedType.LPStr)]
+    public string platformCodeUtf8;
+    [MarshalAs(UnmanagedType.LPStr)]
+    public string imgUrlUtf8;
+    public bool redeemed;
 }
 
 // Events

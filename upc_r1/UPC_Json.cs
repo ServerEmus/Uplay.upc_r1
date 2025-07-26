@@ -6,7 +6,7 @@ namespace upc_r1;
 
 public class UPC_Json
 {
-    private static string path = Path.Combine(AOTHelper.CurrentPath, "upc.json");
+    private static readonly string path = Path.Combine(AOTHelper.CurrentPath, "upc.json");
     private static Root? instance;
 
     public static Root Instance
@@ -31,15 +31,6 @@ public class UPC_Json
     {
         File.WriteAllText(path, JsonSerializer.Serialize(instance, JsonSourceGen.Default.Root));
     }
-
-    public class BasicLog
-    {
-        public bool ReqLog { get; set; }
-        public bool RspLog { get; set; }
-        public bool UseNamePipeClient { get; set; }
-        public uint WaitBetweebUpdate { get; set; } = 20_000;
-    }
-
 
     public class Account
     {
@@ -84,15 +75,29 @@ public class UPC_Json
         public bool Achieved { get; set; }
     }
 
+    public class Reward
+    {
+        public string Id { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public string Url { get; set; } = string.Empty;
+        public uint Cost { get; set; }
+        public string GameCode { get; set; } = string.Empty;
+        public string PlatformCode { get; set; } = string.Empty;
+        public string ImageUrl { get; set; } = string.Empty;
+        public bool Redeemed { get; set; }
+    }
+
     public class Root
     {
-        public BasicLog BasicLog { get; set; } = new();
+        public bool UseDebug { get; set; } = false;
         public Account Account { get; set; } = new();
         public Save Save { get; set; } = new();
         public Others Others { get; set; } = new();
         public List<CDKey> CDKeys { get; set; } = [];
         public ChunkInfo ChunkInfo { get; set; } = new();
         public List<Achi> Achis { get; set; } = [];
+        public List<Reward> Rewards { get; set; } = [];
         public string AvatarsPath { get; set; } = string.Empty;
     }
 

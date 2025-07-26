@@ -63,26 +63,6 @@ public enum UplayStartFlags
     None = 0
 }
 
-public enum UPLAY_SAVE_Mode
-{
-    UPLAY_SAVE_MODE_Read,
-    UPLAY_SAVE_MODE_Write
-}
-
-public enum UPLAY_AVATAR_AvatarSize
-{
-    Size64,
-    Size128,
-    Size256,
-}
-
-public enum UPLAY_FRIENDS_Relationship : uint
-{
-    None,
-    Friends,
-    RequestSent,
-    RequestReceived
-}
 
 [Flags]
 public enum UPLAY_FRIENDS_FriendListFilter

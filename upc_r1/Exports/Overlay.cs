@@ -1,56 +1,53 @@
-﻿using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-
-namespace upc_r1.Exports;
+﻿namespace upc_r1.Exports;
 
 internal class Overlay
 {
     [UnmanagedCallersOnly(EntryPoint = "UPLAY_OVERLAY_SetShopUrl", CallConvs = [typeof(CallConvCdecl)])]
-    public static bool UPLAY_OVERLAY_SetShopUrl(IntPtr aUrl, IntPtr aOverlapped)
+    public static bool UPLAY_OVERLAY_SetShopUrl(IntPtr Url, IntPtr Overlapped)
     {
-        Log.Information(nameof(UPLAY_OVERLAY_SetShopUrl), [aUrl, aOverlapped]);
+        Log.Information("[{Function}] {Url} {Overlapped}", nameof(UPLAY_OVERLAY_SetShopUrl), Marshal.PtrToStringAnsi(Url), Overlapped);
         return false;
     }
 
     [UnmanagedCallersOnly(EntryPoint = "UPLAY_OVERLAY_Show", CallConvs = [typeof(CallConvCdecl)])]
-    public static bool UPLAY_OVERLAY_Show(IntPtr aOverlaySection, IntPtr aOverlapped)
+    public static bool UPLAY_OVERLAY_Show(int OverlaySection, IntPtr Overlapped)
     {
-        Log.Information(nameof(UPLAY_OVERLAY_Show), [aOverlaySection, aOverlapped]);
+        Log.Information("[{Function}] {Url} {Overlapped}", nameof(UPLAY_OVERLAY_SetShopUrl), OverlaySection, Overlapped);
         return false;
     }
 
     [UnmanagedCallersOnly(EntryPoint = "UPLAY_OVERLAY_ShowBrowserUrl", CallConvs = [typeof(CallConvCdecl)])]
-    public static bool UPLAY_OVERLAY_ShowBrowserUrl(IntPtr aUrlUtf8)
+    public static bool UPLAY_OVERLAY_ShowBrowserUrl(IntPtr UrlUtf8)
     {
-        Log.Information(nameof(UPLAY_OVERLAY_ShowBrowserUrl), [aUrlUtf8]);
+        Log.Information("[{Function}] {Url}", nameof(UPLAY_OVERLAY_ShowBrowserUrl), Marshal.PtrToStringAnsi(UrlUtf8));
         return false;
     }
 
     [UnmanagedCallersOnly(EntryPoint = "UPLAY_OVERLAY_ShowFacebookAuthentication", CallConvs = [typeof(CallConvCdecl)])]
-    public static bool UPLAY_OVERLAY_ShowFacebookAuthentication(IntPtr aFacebookAppId, IntPtr aRedirectUri, IntPtr aOverlapped)
+    public static bool UPLAY_OVERLAY_ShowFacebookAuthentication(IntPtr FacebookAppId, IntPtr RedirectUri, IntPtr Overlapped)
     {
-        Log.Information(nameof(UPLAY_OVERLAY_ShowFacebookAuthentication), [aFacebookAppId, aRedirectUri, aOverlapped]);
+        Log.Information("[{Function}] {FacebookAppId} {RedirectUri} {Overlapped}", nameof(UPLAY_OVERLAY_ShowShopUrl), Marshal.PtrToStringAnsi(FacebookAppId), Marshal.PtrToStringAnsi(RedirectUri), Overlapped);
         return false;
     }
 
     [UnmanagedCallersOnly(EntryPoint = "UPLAY_OVERLAY_ShowMicroApp", CallConvs = [typeof(CallConvCdecl)])]
-    public static bool UPLAY_OVERLAY_ShowMicroApp(IntPtr aAppName, IntPtr aMicroAppParamList, IntPtr aOverlapped)
+    public static bool UPLAY_OVERLAY_ShowMicroApp(IntPtr AppName, IntPtr MicroAppParamList, IntPtr Overlapped)
     {
-        Log.Information(nameof(UPLAY_OVERLAY_ShowMicroApp), [aAppName, aMicroAppParamList, aOverlapped]);
+        Log.Information("[{Function}] {AppName} {MicroAppParamList} {Overlapped}", nameof(UPLAY_OVERLAY_ShowShopUrl), Marshal.PtrToStringAnsi(AppName), MicroAppParamList, Overlapped);
         return false;
     }
 
     [UnmanagedCallersOnly(EntryPoint = "UPLAY_OVERLAY_ShowNotification", CallConvs = [typeof(CallConvCdecl)])]
-    public static bool UPLAY_OVERLAY_ShowNotification(uint aNotificationId)
+    public static bool UPLAY_OVERLAY_ShowNotification(uint NotificationId)
     {
-        Log.Information(nameof(UPLAY_OVERLAY_ShowNotification), [aNotificationId]);
+        Log.Information("[{Function}] {NotificationId}", nameof(UPLAY_OVERLAY_ShowNotification), NotificationId);
         return false;
     }
 
     [UnmanagedCallersOnly(EntryPoint = "UPLAY_OVERLAY_ShowShopUrl", CallConvs = [typeof(CallConvCdecl)])]
-    public static bool UPLAY_OVERLAY_ShowShopUrl(IntPtr aUrlUtf8)
+    public static bool UPLAY_OVERLAY_ShowShopUrl(IntPtr UrlUtf8)
     {
-        Log.Information(nameof(UPLAY_OVERLAY_ShowShopUrl), [aUrlUtf8]);
+        Log.Information("[{Function}] {Url}", nameof(UPLAY_OVERLAY_ShowShopUrl), Marshal.PtrToStringAnsi(UrlUtf8));
         return false;
     }
 }

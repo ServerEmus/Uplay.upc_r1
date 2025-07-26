@@ -1,7 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-
-namespace upc_r1.Exports;
+﻿namespace upc_r1.Exports;
 
 internal class Win
 {
@@ -20,7 +17,7 @@ internal class Win
     }
 
     [UnmanagedCallersOnly(EntryPoint = "UPLAY_WIN_GetUnitBalance", CallConvs = [typeof(CallConvCdecl)])]
-    public static bool UPLAY_WIN_GetUnitBalance(int aOutBalance, IntPtr aOverlapped)
+    public static bool UPLAY_WIN_GetUnitBalance(IntPtr aOutBalance, IntPtr aOverlapped)
     {
         Log.Information(nameof(UPLAY_WIN_GetUnitBalance), [aOutBalance, aOverlapped]);
         return false;
@@ -51,6 +48,6 @@ internal class Win
     public static bool UPLAY_WIN_SetActionsCompleted(IntPtr aActionIdsUtf8, uint aActionIdsCount, IntPtr aOverlapped)
     {
         Log.Information(nameof(UPLAY_WIN_SetActionsCompleted), [aActionIdsUtf8, aActionIdsCount, aOverlapped]);
-        return true;
+        return false;
     }
 }

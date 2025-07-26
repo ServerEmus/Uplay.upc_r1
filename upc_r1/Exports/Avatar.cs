@@ -5,23 +5,23 @@ namespace upc_r1.Exports;
 internal static class Avatar
 {
     [UnmanagedCallersOnly(EntryPoint = "UPLAY_AVATAR_GetBitmap", CallConvs = [typeof(CallConvCdecl)])]
-    public static bool UPLAY_AVATAR_GetBitmap(IntPtr aAvatarId, int aAvatarSize, IntPtr aOutRGBA, IntPtr aOverlapped)
+    public static bool UPLAY_AVATAR_GetBitmap(IntPtr AvatarId, int AvatarSize, IntPtr OutRGBA, IntPtr Overlapped)
     {
-        Log.Information(nameof(UPLAY_AVATAR_GetBitmap), [aAvatarId, aAvatarSize, aOutRGBA, aOverlapped]);
-        return true;
+        Log.Verbose("[{Function}] {AvatarId} {AvatarSize} {OutRGBA} {Overlapped}", nameof(UPLAY_AVATAR_GetBitmap), AvatarId, AvatarSize, OutRGBA, Overlapped);
+        return false;
     }
 
     [UnmanagedCallersOnly(EntryPoint = "UPLAY_AVATAR_GetAvatarIdForCurrentUser", CallConvs = [typeof(CallConvCdecl)])]
-    public static bool UPLAY_AVATAR_GetAvatarIdForCurrentUser(IntPtr aOutAvatarId, IntPtr aOverlapped)
+    public static bool UPLAY_AVATAR_GetAvatarIdForCurrentUser(IntPtr OutAvatarId, IntPtr Overlapped)
     {
-        Log.Information(nameof(UPLAY_AVATAR_GetAvatarIdForCurrentUser), [aOutAvatarId, aOverlapped]);
-        return true;
+        Log.Verbose("[{Function}] {OutAvatarId} {Overlapped}", nameof(UPLAY_AVATAR_GetAvatarIdForCurrentUser), OutAvatarId, Overlapped);
+        return false;
     }
 
     [UnmanagedCallersOnly(EntryPoint = "UPLAY_AVATAR_Get", CallConvs = [typeof(CallConvCdecl)])]
     public static bool UPLAY_AVATAR_Get(IntPtr AccountIdUtf8, int AvatarSize, IntPtr OutRGBA, IntPtr Overlapped)
     {
-        Log.Information(nameof(UPLAY_AVATAR_Get), [AccountIdUtf8, AvatarSize, OutRGBA, Overlapped]);
+        Log.Verbose("[{Function}] {AvatarId} {AvatarSize} {OutRGBA} {Overlapped}", nameof(UPLAY_AVATAR_GetBitmap), AccountIdUtf8, AvatarSize, OutRGBA, Overlapped);
         if (string.IsNullOrEmpty(UPC_Json.Instance.AvatarsPath))
         {
             Basics.WriteOverlappedResult(Overlapped, false, UPLAY_OverlappedResult.UPLAY_OverlappedResult_Failed);
@@ -33,12 +33,12 @@ internal static class Avatar
             Basics.WriteOverlappedResult(Overlapped, false, UPLAY_OverlappedResult.UPLAY_OverlappedResult_Failed);
             return false;
         }
-        UPLAY_AVATAR_AvatarSize size = (UPLAY_AVATAR_AvatarSize)AvatarSize;
+        Uplay.Uplaydll.AvatarSize size = (Uplay.Uplaydll.AvatarSize)AvatarSize;
         string sizeStr = size switch
-        { 
-            UPLAY_AVATAR_AvatarSize.Size64 => "64",
-            UPLAY_AVATAR_AvatarSize.Size128 => "128",
-            UPLAY_AVATAR_AvatarSize.Size256 => "256",
+        {
+            Uplay.Uplaydll.AvatarSize._64 => "64",
+            Uplay.Uplaydll.AvatarSize._128 => "128",
+            Uplay.Uplaydll.AvatarSize._256 => "256",
             _ => "64",
         };
         string path = Path.Combine(UPC_Json.Instance.AvatarsPath, $"{accountid}_{sizeStr}.png");
@@ -72,8 +72,8 @@ internal static class Avatar
     [UnmanagedCallersOnly(EntryPoint = "UPLAY_AVATAR_Release", CallConvs = [typeof(CallConvCdecl)])]
     public static bool UPLAY_AVATAR_Release(IntPtr RGBA)
     {
-        Log.Information(nameof(UPLAY_AVATAR_Release), [RGBA]);
+        Log.Verbose("[{Function}] {RGBA}", nameof(UPLAY_AVATAR_Release), RGBA);
         Marshal.FreeHGlobal(RGBA);
-        return false;
+        return true;
     }
 }

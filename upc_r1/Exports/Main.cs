@@ -1,7 +1,5 @@
 ﻿using DllShared;
-using Google.Protobuf;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
+using Shared;
 
 namespace upc_r1.Exports;
 
@@ -10,114 +8,121 @@ public static class Main
     public static uint ProductId = 0;
 
     [UnmanagedCallersOnly(EntryPoint = "UPLAY_GetLastError", CallConvs = [typeof(CallConvCdecl)])]
-    public static bool UPLAY_GetLastError(IntPtr aOutErrorString)
+    public static bool UPLAY_GetLastError(IntPtr OutErrorString)
     {
-        Log.Information(nameof(UPLAY_GetLastError), [aOutErrorString]);
-        Marshal.WriteIntPtr(aOutErrorString, Marshal.StringToHGlobalAnsi(string.Empty));
+        Log.Verbose("[{Function}] {OutErrorString}", nameof(UPLAY_GetLastError), OutErrorString);
+        Marshal.WriteIntPtr(OutErrorString, Marshal.StringToHGlobalAnsi(string.Empty));
         return false;
     }
 
     [UnmanagedCallersOnly(EntryPoint = "UPLAY_HasOverlappedOperationCompleted", CallConvs = [typeof(CallConvCdecl)])]
-    public static bool UPLAY_HasOverlappedOperationCompleted(IntPtr aOverlapped)
+    public static bool UPLAY_HasOverlappedOperationCompleted(IntPtr Overlapped)
     {
-        //Log.Information(nameof(UPLAY_HasOverlappedOperationCompleted), [aOverlapped]);
-        var lapped = Marshal.PtrToStructure<UPLAY_Overlapped>(aOverlapped);
-        //Log.Information(nameof(UPLAY_HasOverlappedOperationCompleted), [lapped.Completed, lapped.Result]);
+        if (Overlapped == IntPtr.Zero)
+            return false;
+        var lapped = Marshal.PtrToStructure<UPLAY_Overlapped>(Overlapped);
         return lapped.Completed;
     }
 
     [UnmanagedCallersOnly(EntryPoint = "UPLAY_GetOverlappedOperationResult", CallConvs = [typeof(CallConvCdecl)])]
-    public static bool UPLAY_GetOverlappedOperationResult(IntPtr aOverlapped, IntPtr aOutResult)
+    public static bool UPLAY_GetOverlappedOperationResult(IntPtr Overlapped, IntPtr OutResult)
     {
-        //Log.Information(nameof(UPLAY_GetOverlappedOperationResult), [aOverlapped, aOutResult]);
-        //var lapped = Marshal.PtrToStructure<UPLAY_Overlapped>(aOverlapped);
-        //Log.Information(nameof(UPLAY_HasOverlappedOperationCompleted), [lapped.Completed, lapped.Result]);
-        Marshal.WriteInt32(aOutResult, (int)UPLAY_OverlappedResult.UPLAY_OverlappedResult_Ok);
+        var lapped = Marshal.PtrToStructure<UPLAY_Overlapped>(Overlapped);
+        Marshal.WriteInt32(OutResult, (int)lapped.Result);
         return true;
     }
 
     [UnmanagedCallersOnly(EntryPoint = "UPLAY_PeekNextEvent", CallConvs = [typeof(CallConvCdecl)])]
-    public static bool UPLAY_PeekNextEvent()
+    public static bool UPLAY_PeekNextEvent(IntPtr OutEvent)
     {
-        //Log.Information(nameof(UPLAY_PeekNextEvent), []);
-        return true;
+        Log.Verbose("[{Function}] {OutEvent}", nameof(UPLAY_PeekNextEvent), OutEvent);
+        return false;
     }
 
     [UnmanagedCallersOnly(EntryPoint = "UPLAY_GetNextEvent", CallConvs = [typeof(CallConvCdecl)])]
-    public static bool UPLAY_GetNextEvent(IntPtr aEvent)
+    public static bool UPLAY_GetNextEvent(IntPtr OutEvent)
     {
-        //Log.Information(nameof(UPLAY_GetNextEvent), [aEvent]);
+        Log.Verbose("[{Function}] {OutEvent}", nameof(UPLAY_GetNextEvent), OutEvent);
         return false;
     }
 
     [UnmanagedCallersOnly(EntryPoint = "UPLAY_Init", CallConvs = [typeof(CallConvCdecl)])]
     public static bool UPLAY_Init()
     {
-        Log.Information(nameof(UPLAY_Init));
+        Log.Verbose("[{Function}]", nameof(UPLAY_Init));
         return true;
     }
 
     [UnmanagedCallersOnly(EntryPoint = "UPLAY_Start", CallConvs = [typeof(CallConvCdecl)])]
-    public static bool UPLAY_Start(uint aUplayId, uint aFlags)
+    public static int UPLAY_Start(uint UplayId, uint Flags)
     {
-        Log.Information(nameof(UPLAY_Start), [aUplayId, aFlags]);
-        ProductId = aUplayId;
+        // TODO Start logger here.
+        MainLogger.CreateNew();
+        if (UPC_Json.Instance.UseDebug)
+            MainLogger.FileLevelSwitch.MinimumLevel = Serilog.Events.LogEventLevel.Verbose;
+        Log.Verbose("[{Function}] {UplayId} {Flags}", nameof(UPLAY_Start), UplayId, Flags);
+        ProductId = UplayId;
         LoadDll.PluginPath = "r1";
         LoadDll.LoadPlugins();
-        return false;
+        return (int)UplayStartResult.Ok;
     }
 
     [UnmanagedCallersOnly(EntryPoint = "UPLAY_Startup", CallConvs = [typeof(CallConvCdecl)])]
-    public static bool UPLAY_Startup(uint aUplayId, uint aGameVersion, IntPtr aLanguageCountryCodeUtf8)
+    public static int UPLAY_Startup(uint UplayId, uint GameVersion, IntPtr LanguageCountryCodeUtf8)
     {
-        Log.Information(nameof(UPLAY_Startup), [aUplayId, aGameVersion, aLanguageCountryCodeUtf8]);
-        return false;
+        MainLogger.CreateNew();
+        if (UPC_Json.Instance.UseDebug)
+            MainLogger.FileLevelSwitch.MinimumLevel = Serilog.Events.LogEventLevel.Verbose;
+        Log.Verbose("[{Function}] {UplayId} {GameVersion} {LanguageCountryCodeUtf8}", nameof(UPLAY_Start), UplayId, GameVersion, LanguageCountryCodeUtf8);
+        ProductId = UplayId;
+        LoadDll.PluginPath = "r1";
+        LoadDll.LoadPlugins();
+        return (int)UplayStartResult.Ok;
     }
 
     [UnmanagedCallersOnly(EntryPoint = "UPLAY_Update", CallConvs = [typeof(CallConvCdecl)])]
     public static bool UPLAY_Update()
     {
-        //Log.Information(nameof(UPLAY_Update), []);
         return true;
     }
 
     [UnmanagedCallersOnly(EntryPoint = "UPLAY_Quit", CallConvs = [typeof(CallConvCdecl)])]
     public static bool UPLAY_Quit()
     {
-        Log.Information(nameof(UPLAY_Quit));
+        Log.Verbose("[{Function}]", nameof(UPLAY_Quit));
         LoadDll.FreePlugins();
+        MainLogger.Close();
         return true;
     }
 
     [UnmanagedCallersOnly(EntryPoint = "UPLAY_SetLanguage", CallConvs = [typeof(CallConvCdecl)])]
-    public static bool UPLAY_SetLanguage(IntPtr aLanguageCountryCode)
+    public static bool UPLAY_SetLanguage(IntPtr LanguageCountryCode)
     {
-        Log.Information(nameof(UPLAY_SetLanguage), [aLanguageCountryCode]);
-        string? langCode = Marshal.PtrToStringUTF8(aLanguageCountryCode);
-        Log.Information(nameof(UPLAY_SetLanguage), [langCode == null]);
+        Log.Verbose("[{Function}] {LanguageCountryCode}", nameof(UPLAY_SetLanguage), LanguageCountryCode);
+        string? langCode = Marshal.PtrToStringUTF8(LanguageCountryCode);
         if (!string.IsNullOrEmpty(langCode))
             UPC_Json.Instance.Account.Country = langCode;
         return true;
     }
 
     [UnmanagedCallersOnly(EntryPoint = "UPLAY_SetGameSession", CallConvs = [typeof(CallConvCdecl)])]
-    public static bool UPLAY_SetGameSession(IntPtr aGameSessionIdentifier, IntPtr aSessionData, uint aFlags)
+    public static bool UPLAY_SetGameSession(IntPtr GameSessionIdentifier, IntPtr SessionData, uint Flags)
     {
-        Log.Information(nameof(UPLAY_SetGameSession), [aGameSessionIdentifier, aSessionData, aFlags]);
+        Log.Verbose("[{Function}] {GameSessionIdentifier} {SessionData} {Flags}", nameof(UPLAY_SetLanguage), GameSessionIdentifier, SessionData, Flags);
         return true;
     }
 
     [UnmanagedCallersOnly(EntryPoint = "UPLAY_ClearGameSession", CallConvs = [typeof(CallConvCdecl)])]
     public static bool UPLAY_ClearGameSession()
     {
-        Log.Information(nameof(UPLAY_ClearGameSession));
+        Log.Verbose("[{Function}]", nameof(UPLAY_ClearGameSession));
         return true;
     }
 
     [UnmanagedCallersOnly(EntryPoint = "UPLAY_PRESENCE_SetPresence", CallConvs = [typeof(CallConvCdecl)])]
     public static bool UPLAY_PRESENCE_SetPresence(uint presenceId, IntPtr tokens)
     {
-        Log.Information(nameof(UPLAY_PRESENCE_SetPresence), [presenceId, tokens]);
+        Log.Verbose("[{Function}] {presenceId} {tokens}", nameof(UPLAY_PRESENCE_SetPresence), presenceId, tokens);
         return true;
     }
 }

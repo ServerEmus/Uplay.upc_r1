@@ -1,111 +1,109 @@
-﻿using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
+﻿namespace upc_r1.Exports;
 
-namespace upc_r1.Exports;
 public class Friends
 {
     [UnmanagedCallersOnly(EntryPoint = "UPLAY_FRIENDS_AddPlayedWith", CallConvs = [typeof(CallConvCdecl)])]
-    public static bool UPLAY_FRIENDS_AddPlayedWith(IntPtr aDescriptionUtf8, IntPtr aAccountIdListUtf8, uint aAccountIdListLength)
+    public static bool UPLAY_FRIENDS_AddPlayedWith(IntPtr DescriptionUtf8, IntPtr AccountIdListUtf8, uint AccountIdListLength)
     {
-        Log.Information(nameof(UPLAY_FRIENDS_AddPlayedWith), [aDescriptionUtf8, aDescriptionUtf8, aAccountIdListLength]);
+        Log.Information("[{Function}] {DescriptionUtf8} {AccountIdListUtf8} {AccountIdListLength}", nameof(UPLAY_FRIENDS_AddPlayedWith), Marshal.PtrToStringAnsi(DescriptionUtf8), AccountIdListUtf8, AccountIdListLength);
         return false;
     }
 
     [UnmanagedCallersOnly(EntryPoint = "UPLAY_FRIENDS_AddToBlackList", CallConvs = [typeof(CallConvCdecl)])]
-    public static bool UPLAY_FRIENDS_AddToBlackList(IntPtr aAccountIdUtf8, IntPtr aOverlapped)
+    public static bool UPLAY_FRIENDS_AddToBlackList(IntPtr AccountIdUtf8, IntPtr Overlapped)
     {
-        Log.Information(nameof(UPLAY_FRIENDS_AddToBlackList), [aAccountIdUtf8, aOverlapped]);
+        Log.Information("[{Function}] {AccountIdUtf8} {Overlapped}", nameof(UPLAY_FRIENDS_AddPlayedWith), Marshal.PtrToStringAnsi(AccountIdUtf8), Overlapped);
         return false;
     }
 
     [UnmanagedCallersOnly(EntryPoint = "UPLAY_FRIENDS_DisableFriendMenuItem", CallConvs = [typeof(CallConvCdecl)])]
-    public static bool UPLAY_FRIENDS_DisableFriendMenuItem(uint aId)
+    public static bool UPLAY_FRIENDS_DisableFriendMenuItem(uint Id)
     {
-        Log.Information(nameof(UPLAY_FRIENDS_DisableFriendMenuItem), [aId]);
+        Log.Information("[{Function}] {Id}", nameof(UPLAY_FRIENDS_DisableFriendMenuItem), Id);
         return false;
     }
 
     [UnmanagedCallersOnly(EntryPoint = "UPLAY_FRIENDS_EnableFriendMenuItem", CallConvs = [typeof(CallConvCdecl)])]
-    public static bool UPLAY_FRIENDS_EnableFriendMenuItem(uint aId, uint aMenuItemMode, uint aFilter)
+    public static bool UPLAY_FRIENDS_EnableFriendMenuItem(uint Id, uint MenuItemMode, uint Filter)
     {
-        Log.Information(nameof(UPLAY_FRIENDS_EnableFriendMenuItem), [aId, aMenuItemMode, aFilter]);
+        Log.Information("[{Function}] {Id} {MenuItemMode} {Filter}", nameof(UPLAY_FRIENDS_EnableFriendMenuItem), Id, MenuItemMode, Filter);
         return false;
     }
 
     [UnmanagedCallersOnly(EntryPoint = "UPLAY_FRIENDS_GetFriendList", CallConvs = [typeof(CallConvCdecl)])]
-    public static bool UPLAY_FRIENDS_GetFriendList(uint aFriendListFilter, IntPtr aOutFriendList)
+    public static bool UPLAY_FRIENDS_GetFriendList(uint FriendListFilter, IntPtr OutFriendList)
     {
-        Log.Information(nameof(UPLAY_FRIENDS_GetFriendList), [aFriendListFilter, aOutFriendList]);
+        Log.Information("[{Function}] {FriendListFilter} {OutFriendList}", nameof(UPLAY_FRIENDS_GetFriendList), FriendListFilter, OutFriendList);
         return false;
     }
 
     [UnmanagedCallersOnly(EntryPoint = "UPLAY_FRIENDS_Init", CallConvs = [typeof(CallConvCdecl)])]
-    public static bool UPLAY_FRIENDS_Init(uint aFlags)
+    public static bool UPLAY_FRIENDS_Init(uint Flags)
     {
-        Log.Information(nameof(UPLAY_FRIENDS_Init), [aFlags]);
-        return false;
+        Log.Information("[{Function}] {Flags}", nameof(UPLAY_FRIENDS_Init), Flags);
+        return true;
     }
 
     [UnmanagedCallersOnly(EntryPoint = "UPLAY_FRIENDS_InviteToGame", CallConvs = [typeof(CallConvCdecl)])]
-    public static bool UPLAY_FRIENDS_InviteToGame(IntPtr aAccountIdUtf8, IntPtr aOverlapped)
+    public static bool UPLAY_FRIENDS_InviteToGame(IntPtr AccountIdUtf8, IntPtr Overlapped)
     {
-        Log.Information(nameof(UPLAY_FRIENDS_InviteToGame), [aAccountIdUtf8, aOverlapped]);
+        Log.Information("[{Function}] {AccountIdUtf8} {Overlapped}", nameof(UPLAY_FRIENDS_GetFriendList), Marshal.PtrToStringAnsi(AccountIdUtf8), Overlapped);
         return false;
     }
 
     [UnmanagedCallersOnly(EntryPoint = "UPLAY_FRIENDS_IsBlackListed", CallConvs = [typeof(CallConvCdecl)])]
-    public static bool UPLAY_FRIENDS_IsBlackListed(IntPtr aAccountIdUtf8)
+    public static bool UPLAY_FRIENDS_IsBlackListed(IntPtr AccountIdUtf8)
     {
-        Log.Information(nameof(UPLAY_FRIENDS_IsBlackListed), [aAccountIdUtf8]);
+        Log.Information("[{Function}] {AccountIdUtf8}", nameof(UPLAY_FRIENDS_IsBlackListed), Marshal.PtrToStringAnsi(AccountIdUtf8));
         return false;
     }
 
     [UnmanagedCallersOnly(EntryPoint = "UPLAY_FRIENDS_IsFriend", CallConvs = [typeof(CallConvCdecl)])]
-    public static bool UPLAY_FRIENDS_IsFriend(IntPtr aAccountIdUtf8)
+    public static bool UPLAY_FRIENDS_IsFriend(IntPtr AccountIdUtf8)
     {
-        Log.Information(nameof(UPLAY_FRIENDS_IsFriend), [aAccountIdUtf8]);
+        Log.Information("[{Function}] {AccountIdUtf8}", nameof(UPLAY_FRIENDS_IsFriend), Marshal.PtrToStringAnsi(AccountIdUtf8));
         return false;
     }
 
     [UnmanagedCallersOnly(EntryPoint = "UPLAY_FRIENDS_RemoveFriendship", CallConvs = [typeof(CallConvCdecl)])]
-    public static bool UPLAY_FRIENDS_RemoveFriendship(IntPtr aAccountIdUtf8, IntPtr aOverlapped)
+    public static bool UPLAY_FRIENDS_RemoveFriendship(IntPtr AccountIdUtf8, IntPtr Overlapped)
     {
-        Log.Information(nameof(UPLAY_FRIENDS_RemoveFriendship), [aAccountIdUtf8, aOverlapped]);
+        Log.Information("[{Function}] {AccountIdUtf8} {Overlapped}", nameof(UPLAY_FRIENDS_RemoveFriendship), Marshal.PtrToStringAnsi(AccountIdUtf8), Overlapped);
         return false;
     }
 
     [UnmanagedCallersOnly(EntryPoint = "UPLAY_FRIENDS_RemoveFromBlackList", CallConvs = [typeof(CallConvCdecl)])]
-    public static bool UPLAY_FRIENDS_RemoveFromBlackList(IntPtr aAccountIdUtf8, IntPtr aOverlapped)
+    public static bool UPLAY_FRIENDS_RemoveFromBlackList(IntPtr AccountIdUtf8, IntPtr Overlapped)
     {
-        Log.Information(nameof(UPLAY_FRIENDS_RemoveFromBlackList), [aAccountIdUtf8, aOverlapped]);
+        Log.Information("[{Function}] {AccountIdUtf8} {Overlapped}", nameof(UPLAY_FRIENDS_RemoveFromBlackList), Marshal.PtrToStringAnsi(AccountIdUtf8), Overlapped);
         return false;
     }
 
     [UnmanagedCallersOnly(EntryPoint = "UPLAY_FRIENDS_RequestFriendship", CallConvs = [typeof(CallConvCdecl)])]
-    public static bool UPLAY_FRIENDS_RequestFriendship(IntPtr aSearchStringUtf8, IntPtr aOverlapped)
+    public static bool UPLAY_FRIENDS_RequestFriendship(IntPtr SearchStringUtf8, IntPtr Overlapped)
     {
-        Log.Information(nameof(UPLAY_FRIENDS_RequestFriendship), [aSearchStringUtf8, aOverlapped]);
+        Log.Information("[{Function}] {SearchStringUtf8} {Overlapped}", nameof(UPLAY_FRIENDS_RequestFriendship), Marshal.PtrToStringAnsi(SearchStringUtf8), Overlapped);
         return false;
     }
 
     [UnmanagedCallersOnly(EntryPoint = "UPLAY_FRIENDS_RespondToGameInvite", CallConvs = [typeof(CallConvCdecl)])]
-    public static bool UPLAY_FRIENDS_RespondToGameInvite(uint aInvitationId, IntPtr aAccept)
+    public static bool UPLAY_FRIENDS_RespondToGameInvite(uint InvitationId, IntPtr Accept)
     {
-        Log.Information(nameof(UPLAY_FRIENDS_RespondToGameInvite), [aInvitationId, aAccept]);
+        Log.Information("[{Function}] {InvitationId} {Accept}", nameof(UPLAY_FRIENDS_RespondToGameInvite), InvitationId, Accept);
         return false;
     }
 
     [UnmanagedCallersOnly(EntryPoint = "UPLAY_FRIENDS_ShowFriendSelectionUI", CallConvs = [typeof(CallConvCdecl)])]
-    public static bool UPLAY_FRIENDS_ShowFriendSelectionUI(IntPtr aAccountIdFilterListUTF8, uint aAccountIdFilterListLength, IntPtr aOverlapped, IntPtr aOutResult)
+    public static bool UPLAY_FRIENDS_ShowFriendSelectionUI(IntPtr AccountIdFilterListUtf8, uint AccountIdFilterListLength, IntPtr Overlapped, IntPtr OutResult)
     {
-        Log.Information(nameof(UPLAY_FRIENDS_ShowFriendSelectionUI), [aAccountIdFilterListUTF8, aAccountIdFilterListLength, aOverlapped, aOutResult]);
+        Log.Information("[{Function}] {AccountIdFilterListUtf8} {AccountIdFilterListLength} {Overlapped} {OutResult}", nameof(UPLAY_FRIENDS_ShowFriendSelectionUI), AccountIdFilterListUtf8, AccountIdFilterListLength, Overlapped, OutResult);
         return false;
     }
 
     [UnmanagedCallersOnly(EntryPoint = "UPLAY_FRIENDS_ShowInviteFriendsToGameUI", CallConvs = [typeof(CallConvCdecl)])]
-    public static bool UPLAY_FRIENDS_ShowInviteFriendsToGameUI(IntPtr aAccountIdFilterListUtf8, uint aAccountIdFilterListLength)
+    public static bool UPLAY_FRIENDS_ShowInviteFriendsToGameUI(IntPtr AccountIdFilterListUtf8, uint AccountIdFilterListLength)
     {
-        Log.Information(nameof(UPLAY_FRIENDS_ShowInviteFriendsToGameUI), [aAccountIdFilterListUtf8, aAccountIdFilterListLength]);
+        Log.Information("[{Function}] {AccountIdFilterListUtf8} {AccountIdFilterListLength}", nameof(UPLAY_FRIENDS_ShowFriendSelectionUI), AccountIdFilterListUtf8, AccountIdFilterListLength);
         return false;
     }
 }

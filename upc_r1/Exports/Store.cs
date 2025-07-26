@@ -1,56 +1,56 @@
-﻿using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
+﻿namespace upc_r1.Exports;
 
-namespace upc_r1.Exports;
-
+/// <summary>
+/// We disable store.
+/// </summary>
 internal class Store
 {
     [UnmanagedCallersOnly(EntryPoint = "UPLAY_STORE_Checkout", CallConvs = [typeof(CallConvCdecl)])]
-    public static bool UPLAY_STORE_Checkout(uint aId)
+    public static bool UPLAY_STORE_Checkout(uint Id)
     {
-        Log.Information(nameof(UPLAY_STORE_Checkout), [aId]);
-        return false;
+        Log.Verbose("[{Function}] {Id}", nameof(UPLAY_STORE_Checkout), Id);
+        return true;
     }
 
     [UnmanagedCallersOnly(EntryPoint = "UPLAY_STORE_GetPartner", CallConvs = [typeof(CallConvCdecl)])]
     public static int UPLAY_STORE_GetPartner()
     {
-        Log.Information(nameof(UPLAY_STORE_GetPartner), []);
-        return 0;
+        Log.Verbose("[{Function}]", nameof(UPLAY_STORE_GetPartner));
+        return (int)Uplay.Uplaydll.TargetPartner.None;
     }
 
     [UnmanagedCallersOnly(EntryPoint = "UPLAY_STORE_GetProducts", CallConvs = [typeof(CallConvCdecl)])]
-    public static bool UPLAY_STORE_GetProducts(IntPtr aOverlapped, IntPtr aOutProductList)
+    public static bool UPLAY_STORE_GetProducts(IntPtr Overlapped, IntPtr OutProductList)
     {
-        Log.Information(nameof(UPLAY_STORE_GetProducts), [aOverlapped, aOutProductList]);
+        Log.Verbose("[{Function}] {Overlapped} {OutProductList}", nameof(UPLAY_STORE_Checkout), Overlapped, OutProductList);
         return false;
     }
 
     [UnmanagedCallersOnly(EntryPoint = "UPLAY_STORE_IsEnabled", CallConvs = [typeof(CallConvCdecl)])]
     public static bool UPLAY_STORE_IsEnabled()
     {
-        Log.Information(nameof(UPLAY_STORE_IsEnabled), []);
+        Log.Verbose("[{Function}]", nameof(UPLAY_STORE_IsEnabled));
         return false;
     }
 
     [UnmanagedCallersOnly(EntryPoint = "UPLAY_STORE_ReleaseProductsList", CallConvs = [typeof(CallConvCdecl)])]
-    public static bool UPLAY_STORE_ReleaseProductsList(IntPtr aProductList)
+    public static bool UPLAY_STORE_ReleaseProductsList(IntPtr ProductList)
     {
-        Log.Information(nameof(UPLAY_STORE_ReleaseProductsList), [aProductList]);
+        Log.Verbose("[{Function}] {ProductList}", nameof(UPLAY_STORE_ReleaseProductsList), ProductList);
         return false;
     }
 
     [UnmanagedCallersOnly(EntryPoint = "UPLAY_STORE_ShowProductDetails", CallConvs = [typeof(CallConvCdecl)])]
-    public static bool UPLAY_STORE_ShowProductDetails(uint aId)
+    public static bool UPLAY_STORE_ShowProductDetails(uint Id)
     {
-        Log.Information(nameof(UPLAY_STORE_ShowProductDetails), [aId]);
+        Log.Verbose("[{Function}] {Id}", nameof(UPLAY_STORE_ShowProductDetails), Id);
         return false;
     }
 
     [UnmanagedCallersOnly(EntryPoint = "UPLAY_STORE_ShowProducts", CallConvs = [typeof(CallConvCdecl)])]
-    public static bool UPLAY_STORE_ShowProducts(uint aTags)
+    public static bool UPLAY_STORE_ShowProducts(IntPtr Tags)
     {
-        Log.Information(nameof(UPLAY_STORE_ShowProducts), [aTags]);
+        Log.Verbose("[{Function}] {Tags}", nameof(UPLAY_STORE_ShowProducts), Tags);
         return false;
     }
 }

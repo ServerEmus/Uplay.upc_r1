@@ -1,5 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 
 namespace upc_r1.Exports;
 
@@ -8,18 +7,18 @@ internal class Save
     static readonly Dictionary<int, string> PtrToFilePath = [];
 
     [UnmanagedCallersOnly(EntryPoint = "UPLAY_SAVE_Close", CallConvs = [typeof(CallConvCdecl)])]
-    public static bool UPLAY_SAVE_Close(IntPtr aOutSaveHandle)
+    public static bool UPLAY_SAVE_Close(IntPtr SaveHandle)
     {
-        Log.Information(nameof(UPLAY_SAVE_Close), [aOutSaveHandle]);
-        PtrToFilePath.Remove(aOutSaveHandle.ToInt32());
+        Log.Verbose("[{Function}] {SaveHandle}", nameof(UPLAY_SAVE_Close), SaveHandle);
+        PtrToFilePath.Remove(SaveHandle.ToInt32());
         return true;
     }
 
     [UnmanagedCallersOnly(EntryPoint = "UPLAY_SAVE_GetSavegames", CallConvs = [typeof(CallConvCdecl)])]
-    public static bool UPLAY_SAVE_GetSavegames(IntPtr aOutGamesList, IntPtr aOverlapped)
+    public static bool UPLAY_SAVE_GetSavegames(IntPtr OutGamesList, IntPtr Overlapped)
     {
-        Log.Information(nameof(UPLAY_SAVE_GetSavegames), [aOutGamesList, aOverlapped]);
-        if (aOutGamesList == IntPtr.Zero)
+        Log.Verbose("[{Function}] {OutGamesList} {Overlapped}", nameof(UPLAY_SAVE_GetSavegames), OutGamesList, Overlapped);
+        if (OutGamesList == IntPtr.Zero)
             return false;
         string savepath = UPC_Json.Instance.Save.Path;
         if (!Directory.Exists(savepath))
@@ -41,112 +40,111 @@ internal class Save
             saves.Add(saveGame);
             i++;
         }
-        WriteOutList(aOutGamesList, saves);
-        Basics.WriteOverlappedResult(aOverlapped, true, UPLAY_OverlappedResult.UPLAY_OverlappedResult_Ok);
+        WriteOutList(OutGamesList, saves);
+        Basics.WriteOverlappedResult(Overlapped, true, UPLAY_OverlappedResult.UPLAY_OverlappedResult_Ok);
         return true;
     }
 
     [UnmanagedCallersOnly(EntryPoint = "UPLAY_SAVE_Open", CallConvs = [typeof(CallConvCdecl)])]
-    public static bool UPLAY_SAVE_Open(uint aSlotId, uint aMode, IntPtr aOutSaveHandle, IntPtr aOverlapped)
+    public static bool UPLAY_SAVE_Open(uint SlotId, uint Mode, IntPtr OutSaveHandle, IntPtr Overlapped)
     {
-        Log.Information(nameof(UPLAY_SAVE_Open), [aSlotId, aMode, aOutSaveHandle, aOverlapped]);
+        Log.Verbose("[{Function}] {SlotId} {Mode} {OutSaveHandle} {Overlapped}", nameof(UPLAY_SAVE_GetSavegames), SlotId, Mode, OutSaveHandle, Overlapped);
         string jsonSavePath = UPC_Json.Instance.Save.Path;
         string savePath = string.Empty;
         if (UPC_Json.Instance.Save.UseAppIdInName)
-            savePath = Path.Combine(jsonSavePath, Main.ProductId.ToString(), $"{aSlotId}.save");
+            savePath = Path.Combine(jsonSavePath, Main.ProductId.ToString(), $"{SlotId}.save");
         else
-            savePath = Path.Combine(jsonSavePath, $"{aSlotId}.save");
-        Log.Information(nameof(UPLAY_SAVE_Open), ["savePath: ", savePath]);
+            savePath = Path.Combine(jsonSavePath, $"{SlotId}.save");
+        Log.Verbose("[{Function}] Save Path: {Path}", nameof(UPLAY_SAVE_GetSavegames), savePath);
         if (!Directory.Exists(Path.GetDirectoryName(savePath)))
             Directory.CreateDirectory(Path.GetDirectoryName(savePath)!);
         if (!File.Exists(savePath))
             File.Create(savePath).Close();
         int ptr = Random.Shared.Next();
-        Log.Information(nameof(UPLAY_SAVE_Open), ["Handle open: ", ptr]);
         PtrToFilePath.Add(ptr, savePath);
-        Marshal.WriteInt32(aOutSaveHandle, 0, ptr);
-        Basics.WriteOverlappedResult(aOverlapped, true, UPLAY_OverlappedResult.UPLAY_OverlappedResult_Ok);
+        Marshal.WriteInt32(OutSaveHandle, 0, ptr);
+        Basics.WriteOverlappedResult(Overlapped, true, UPLAY_OverlappedResult.UPLAY_OverlappedResult_Ok);
         return true;
     }
 
     [UnmanagedCallersOnly(EntryPoint = "UPLAY_SAVE_Read", CallConvs = [typeof(CallConvCdecl)])]
-    public static bool UPLAY_SAVE_Read(IntPtr aSaveHandle, uint aNumOfBytesToRead, uint aOffset, IntPtr aOutBuffer, IntPtr aOutNumOfBytesRead, IntPtr aOverlapped)
+    public static bool UPLAY_SAVE_Read(IntPtr SaveHandle, uint NumOfBytesToRead, uint Offset, IntPtr OutBuffer, IntPtr OutNumOfBytesRead, IntPtr Overlapped)
     {
-        Log.Information(nameof(UPLAY_SAVE_Read), [aSaveHandle, aNumOfBytesToRead, aOffset, aOutBuffer, aOutNumOfBytesRead, aOverlapped]);
-        if (aSaveHandle == 0)
+        Log.Verbose("[{Function}] {SaveHandle} {NumOfBytesToRead} {Offset} {OutBuffer} {OutNumOfBytesRead} {Overlapped}", nameof(UPLAY_SAVE_GetSavegames), SaveHandle, NumOfBytesToRead, Offset, OutBuffer, OutNumOfBytesRead, Overlapped);
+        if (SaveHandle == 0)
         {
-            Basics.WriteOverlappedResult(aOverlapped, false, UPLAY_OverlappedResult.UPLAY_OverlappedResult_InvalidArgument);
+            Basics.WriteOverlappedResult(Overlapped, false, UPLAY_OverlappedResult.UPLAY_OverlappedResult_InvalidArgument);
             return false;
         }
-        if (!PtrToFilePath.TryGetValue(aSaveHandle.ToInt32(), out string? path))
+        if (!PtrToFilePath.TryGetValue(SaveHandle.ToInt32(), out string? path))
         {
-            Basics.WriteOverlappedResult(aOverlapped, false, UPLAY_OverlappedResult.UPLAY_OverlappedResult_InvalidArgument);
+            Basics.WriteOverlappedResult(Overlapped, false, UPLAY_OverlappedResult.UPLAY_OverlappedResult_InvalidArgument);
             return false;
         }
         if (path == null)
         {
-            Basics.WriteOverlappedResult(aOverlapped, false, UPLAY_OverlappedResult.UPLAY_OverlappedResult_InvalidArgument);
+            Basics.WriteOverlappedResult(Overlapped, false, UPLAY_OverlappedResult.UPLAY_OverlappedResult_InvalidArgument);
             return false;
         }
-        if (aNumOfBytesToRead <= 0)
+        if (NumOfBytesToRead <= 0)
         {
-            Basics.WriteOverlappedResult(aOverlapped, false, UPLAY_OverlappedResult.UPLAY_OverlappedResult_InvalidArgument);
+            Basics.WriteOverlappedResult(Overlapped, false, UPLAY_OverlappedResult.UPLAY_OverlappedResult_InvalidArgument);
             return false;
         }
         FileStream filestream = File.OpenRead(path);
-        var buff = new byte[aNumOfBytesToRead];
-        var readed = filestream.Read(buff, (int)aOffset, (int)aNumOfBytesToRead);
+        var buff = new byte[NumOfBytesToRead];
+        var readed = filestream.Read(buff, (int)Offset, (int)NumOfBytesToRead);
         filestream.Close();
         if (readed < 0)
         {
-            Basics.WriteOverlappedResult(aOverlapped, false, UPLAY_OverlappedResult.UPLAY_OverlappedResult_InvalidArgument);
+            Basics.WriteOverlappedResult(Overlapped, false, UPLAY_OverlappedResult.UPLAY_OverlappedResult_InvalidArgument);
             return false;
         }
-        Marshal.WriteInt32(aOutNumOfBytesRead, readed);
-        Marshal.Copy(buff, 0, aOutBuffer, buff.Length);
-        Basics.WriteOverlappedResult(aOverlapped, true, UPLAY_OverlappedResult.UPLAY_OverlappedResult_Ok);
+        Marshal.WriteInt32(OutNumOfBytesRead, readed);
+        Marshal.Copy(buff, 0, OutBuffer, buff.Length);
+        Basics.WriteOverlappedResult(Overlapped, true, UPLAY_OverlappedResult.UPLAY_OverlappedResult_Ok);
         return true;
     }
 
     [UnmanagedCallersOnly(EntryPoint = "UPLAY_SAVE_ReleaseGameList", CallConvs = [typeof(CallConvCdecl)])]
-    public static bool UPLAY_SAVE_ReleaseGameList(IntPtr aGamesList)
+    public static bool UPLAY_SAVE_ReleaseGameList(IntPtr GamesList)
     {
-        Log.Information(nameof(UPLAY_SAVE_ReleaseGameList), [aGamesList]);
-        if (aGamesList == IntPtr.Zero)
+        Log.Verbose("[{Function}] {GamesList}", nameof(UPLAY_SAVE_ReleaseGameList), GamesList);
+        if (GamesList == IntPtr.Zero)
             return false;
-        FreeList(aGamesList);
+        FreeList(GamesList);
         return true;
     }
 
     [UnmanagedCallersOnly(EntryPoint = "UPLAY_SAVE_Remove", CallConvs = [typeof(CallConvCdecl)])]
-    public static bool UPLAY_SAVE_Remove(uint aSlotId, IntPtr aOverlapped)
+    public static bool UPLAY_SAVE_Remove(uint SlotId, IntPtr Overlapped)
     {
-        Log.Information(nameof(UPLAY_SAVE_Remove), [aSlotId, aOverlapped]);
+        Log.Verbose("[{Function}] {SlotId} {Overlapped}", nameof(UPLAY_SAVE_Remove), SlotId, Overlapped);
         string savepath = UPC_Json.Instance.Save.Path;
         if (!Directory.Exists(savepath))
             Directory.CreateDirectory(savepath);
         if (UPC_Json.Instance.Save.UseAppIdInName)
-            savepath = Path.Combine(savepath, Main.ProductId.ToString(), $"{aSlotId}.save");
+            savepath = Path.Combine(savepath, Main.ProductId.ToString(), $"{SlotId}.save");
         var files = Directory.GetFiles(savepath);
-        if (files.Length > aSlotId - 1)
+        if (files.Length > SlotId - 1)
         {
-            Basics.WriteOverlappedResult(aOverlapped, true, UPLAY_OverlappedResult.UPLAY_OverlappedResult_Failed);
+            Basics.WriteOverlappedResult(Overlapped, true, UPLAY_OverlappedResult.UPLAY_OverlappedResult_Failed);
             return false;
         }
-        var file = files.ElementAt((int)aSlotId - 1);
+        var file = files.ElementAt((int)SlotId - 1);
         File.Delete(file);
-        Basics.WriteOverlappedResult(aOverlapped, true, UPLAY_OverlappedResult.UPLAY_OverlappedResult_Ok);
+        Basics.WriteOverlappedResult(Overlapped, true, UPLAY_OverlappedResult.UPLAY_OverlappedResult_Ok);
         return true;
     }
 
     [UnmanagedCallersOnly(EntryPoint = "UPLAY_SAVE_SetName", CallConvs = [typeof(CallConvCdecl)])]
-    public static bool UPLAY_SAVE_SetName(IntPtr aSaveHandle, IntPtr aNameUtf8)
+    public static bool UPLAY_SAVE_SetName(IntPtr SaveHandle, IntPtr NameUtf8)
     {
-        Log.Information(nameof(UPLAY_SAVE_SetName), [aSaveHandle, aNameUtf8]);
-        string? nameUtf = Marshal.PtrToStringAnsi(aNameUtf8);
+        Log.Verbose("[{Function}] {SaveHandle} {NameUtf8}", nameof(UPLAY_SAVE_SetName), SaveHandle, NameUtf8);
+        string? nameUtf = Marshal.PtrToStringAnsi(NameUtf8);
         if (string.IsNullOrEmpty(nameUtf))
             return false;
-        if (!PtrToFilePath.TryGetValue(aSaveHandle.ToInt32(), out string? path))
+        if (!PtrToFilePath.TryGetValue(SaveHandle.ToInt32(), out string? path))
             return false;
         if (path == null)
             return false;
@@ -156,22 +154,22 @@ internal class Save
     }
 
     [UnmanagedCallersOnly(EntryPoint = "UPLAY_SAVE_Write", CallConvs = [typeof(CallConvCdecl)])]
-    public static bool UPLAY_SAVE_Write(IntPtr aSaveHandle, uint aNumOfBytesToWrite, IntPtr aBuffer, IntPtr aOverlapped)
+    public static bool UPLAY_SAVE_Write(IntPtr SaveHandle, uint NumOfBytesToWrite, IntPtr Buffer, IntPtr Overlapped)
     {
-        Log.Information(nameof(UPLAY_SAVE_Write), [aSaveHandle, aNumOfBytesToWrite, aBuffer, aOverlapped]);
-        if (!PtrToFilePath.TryGetValue(aSaveHandle.ToInt32(), out string? path))
+        Log.Verbose("[{Function}] {SaveHandle} {NumOfBytesToWrite} {Buffer} {Overlapped}", nameof(UPLAY_SAVE_Write), SaveHandle, NumOfBytesToWrite, Buffer, Overlapped);
+        if (!PtrToFilePath.TryGetValue(SaveHandle.ToInt32(), out string? path))
         {
-            Basics.WriteOverlappedResult(aOverlapped, true, UPLAY_OverlappedResult.UPLAY_OverlappedResult_Failed);
+            Basics.WriteOverlappedResult(Overlapped, true, UPLAY_OverlappedResult.UPLAY_OverlappedResult_Failed);
             return false;
         }
         if (path == null)
         {
-            Basics.WriteOverlappedResult(aOverlapped, true, UPLAY_OverlappedResult.UPLAY_OverlappedResult_Failed);
+            Basics.WriteOverlappedResult(Overlapped, true, UPLAY_OverlappedResult.UPLAY_OverlappedResult_Failed);
             return false;
         }
         var stream = new FileStream(path, FileMode.OpenOrCreate, FileAccess.ReadWrite);
-        var buff = new byte[aNumOfBytesToWrite];
-        Marshal.Copy(aBuffer, buff, 0, (int)aNumOfBytesToWrite);
+        var buff = new byte[NumOfBytesToWrite];
+        Marshal.Copy(Buffer, buff, 0, (int)NumOfBytesToWrite);
         stream.Write(buff);
         stream.Flush(true);
         stream.Close();

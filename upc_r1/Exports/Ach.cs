@@ -5,8 +5,8 @@ internal static class Ach
     [UnmanagedCallersOnly(EntryPoint = "UPLAY_ACH_EarnAchievement", CallConvs = [typeof(CallConvCdecl)])]
     public static bool UPLAY_ACH_EarnAchievement(uint AchivementId, IntPtr Overlapped)
     {
-        Log.Information(nameof(UPLAY_ACH_EarnAchievement), [AchivementId, Overlapped]);
-        var achi = UPC_Json.Instance.Achis.FirstOrDefault(x=>x.Id == AchivementId);
+        Log.Verbose("[{Function}] {AchivementId} {Overlapped}", nameof(UPLAY_ACH_EarnAchievement), AchivementId, Overlapped);
+        var achi = UPC_Json.Instance.Achis.FirstOrDefault(x => x.Id == AchivementId);
         if (achi == null)
         {
             Basics.WriteOverlappedResult(Overlapped, false, UPLAY_OverlappedResult.UPLAY_OverlappedResult_Failed);
@@ -19,16 +19,17 @@ internal static class Ach
     }
 
     [UnmanagedCallersOnly(EntryPoint = "UPLAY_ACH_GetAchievementImage", CallConvs = [typeof(CallConvCdecl)])]
-    public static bool UPLAY_ACH_GetAchievementImage(uint aId, IntPtr aOutImage, IntPtr aOverlapped)
+    public static bool UPLAY_ACH_GetAchievementImage(uint aId, IntPtr OutImage, IntPtr Overlapped)
     {
-        Log.Information(nameof(UPLAY_ACH_GetAchievementImage), [aId, aOutImage, aOverlapped]);
+        // Ubisoft refuses to give achievement image for some reason.
+        Log.Verbose("[{Function}] {AchivementId} {OutImagePointrer} {Overlapped}", nameof(UPLAY_ACH_GetAchievementImage), aId, OutImage, Overlapped);
         return false;
     }
 
     [UnmanagedCallersOnly(EntryPoint = "UPLAY_ACH_GetAchievements", CallConvs = [typeof(CallConvCdecl)])]
     public static bool UPLAY_ACH_GetAchievements(uint Filter, IntPtr AccountIdUtf8OrNULLIfCurrentUser, IntPtr OutAchievementList, IntPtr Overlapped)
     {
-        Log.Information(nameof(UPLAY_ACH_GetAchievements), [Filter, AccountIdUtf8OrNULLIfCurrentUser, OutAchievementList, Overlapped]);
+        Log.Verbose("[{Function}] {Filter} {AccountIdUtf8OrNULLIfCurrentUser} {OutAchievementList} {Overlapped}", nameof(UPLAY_ACH_GetAchievements), Filter, AccountIdUtf8OrNULLIfCurrentUser, OutAchievementList, Overlapped);
         List<UPLAY_ACH_Achievement> Achis = [];
         foreach (var achi in UPC_Json.Instance.Achis)
         {
@@ -48,22 +49,23 @@ internal static class Ach
     [UnmanagedCallersOnly(EntryPoint = "UPLAY_ACH_ReleaseAchievementImage", CallConvs = [typeof(CallConvCdecl)])]
     public static bool UPLAY_ACH_ReleaseAchievementImage(IntPtr Image)
     {
-        Log.Information(nameof(UPLAY_ACH_ReleaseAchievementImage), [Image]);
+        Log.Verbose("[{Function}] {Image}", nameof(UPLAY_ACH_ReleaseAchievementImage), Image);
+        Marshal.FreeHGlobal(Image);
         return false;
     }
 
     [UnmanagedCallersOnly(EntryPoint = "UPLAY_ACH_ReleaseAchievementList", CallConvs = [typeof(CallConvCdecl)])]
     public static bool UPLAY_ACH_ReleaseAchievementList(IntPtr List)
     {
-        Log.Information(nameof(UPLAY_ACH_ReleaseAchievementList), [List]);
+        Log.Verbose("[{Function}] {List}", nameof(UPLAY_ACH_ReleaseAchievementList), List);
         FreeList(List);
         return true;
     }
 
     [UnmanagedCallersOnly(EntryPoint = "UPLAY_ACH_Write", CallConvs = [typeof(CallConvCdecl)])]
-    public static bool UPLAY_ACH_Write(IntPtr aAchievement)
+    public static bool UPLAY_ACH_Write(uint AchievementId)
     {
-        Log.Information(nameof(UPLAY_ACH_Write), [aAchievement]);
+        Log.Verbose("[{Function}] {AchievementId}", nameof(UPLAY_ACH_Write), AchievementId);
         return false;
     }
 }
