@@ -14,8 +14,7 @@ env:
 jobs:
   build:
     runs-on: windows-latest
-    permissions:
-      packages: read
+    permissions: read-all
 
     steps:
     - uses: actions/checkout@v4

@@ -9,8 +9,7 @@ env:
 jobs:
   publish-package:
     runs-on: windows-latest
-    permissions:
-      contents: write
+    permissions: write-all
 
     steps:
       - uses: actions/checkout@v4
