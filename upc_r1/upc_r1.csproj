@@ -15,20 +15,12 @@
 	<Copyright>(c) Ubisoft</Copyright>
 	<NeutralLanguage>en-US</NeutralLanguage>
 	<Version>158.0.11194</Version>
+	<AssemblyName>upc_r1</AssemblyName>
   </PropertyGroup>
 
-	<Choose>
-		<When Condition=" '$(Platform)'=='x64' ">
-			<PropertyGroup>
-				<AssemblyName>upc_r164</AssemblyName>
-			</PropertyGroup>
-		</When>
-		<When Condition=" '$(Platform)'=='x86' ">
-			<PropertyGroup>
-				<AssemblyName>upc_r1</AssemblyName>
-			</PropertyGroup>
-		</When>
-	</Choose>
+	<PropertyGroup>
+		<AssemblyName Condition=" '$(Platform)'=='x64' ">$(AssemblyName)64</AssemblyName>
+	</PropertyGroup>
 
 	<ItemGroup>
 	  <PackageReference Include="BepInEx.AssemblyPublicizer.MSBuild" Version="0.4.3">
