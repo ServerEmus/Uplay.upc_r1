@@ -56,11 +56,14 @@ public static class Main
     [UnmanagedCallersOnly(EntryPoint = "UPLAY_Start", CallConvs = [typeof(CallConvCdecl)])]
     public static int UPLAY_Start(uint UplayId, uint Flags)
     {
-        // TODO Start logger here.
-        MainLogger.CreateNew();
         if (UPC_Json.Instance.UseDebug)
+        {
+            MainLogger.LevelSwitch.MinimumLevel = Serilog.Events.LogEventLevel.Verbose;
             MainLogger.FileLevelSwitch.MinimumLevel = Serilog.Events.LogEventLevel.Verbose;
-        Log.Verbose("[{Function}] {UplayId} {Flags}", nameof(UPLAY_Start), UplayId, Flags);
+        }
+        MainLogger.CreateNew();
+        Log.Information("[{Function}] {UplayId} {Flags}", nameof(UPLAY_Start), UplayId, Flags);
+
         ProductId = UplayId;
         LoadDll.PluginPath = "r1";
         LoadDll.LoadPlugins();
@@ -70,10 +73,13 @@ public static class Main
     [UnmanagedCallersOnly(EntryPoint = "UPLAY_Startup", CallConvs = [typeof(CallConvCdecl)])]
     public static int UPLAY_Startup(uint UplayId, uint GameVersion, IntPtr LanguageCountryCodeUtf8)
     {
-        MainLogger.CreateNew();
         if (UPC_Json.Instance.UseDebug)
+        {
+            MainLogger.LevelSwitch.MinimumLevel = Serilog.Events.LogEventLevel.Verbose;
             MainLogger.FileLevelSwitch.MinimumLevel = Serilog.Events.LogEventLevel.Verbose;
-        Log.Verbose("[{Function}] {UplayId} {GameVersion} {LanguageCountryCodeUtf8}", nameof(UPLAY_Start), UplayId, GameVersion, LanguageCountryCodeUtf8);
+        }
+        MainLogger.CreateNew();
+        Log.Verbose("[{Function}] {UplayId} {GameVersion} {LanguageCountryCodeUtf8}", nameof(UPLAY_Startup), UplayId, GameVersion, LanguageCountryCodeUtf8);
         ProductId = UplayId;
         LoadDll.PluginPath = "r1";
         LoadDll.LoadPlugins();

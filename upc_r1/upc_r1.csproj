@@ -1,50 +1,67 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-	<Platforms>AnyCPU;x86;x64</Platforms>
-	<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-	<IsAotCompatible>True</IsAotCompatible>
-	<PublishAot>true</PublishAot>
-	<AssemblyVersion>158.0.11194.0</AssemblyVersion>
-	<FileVersion>158.0.11194</FileVersion>
-	<Description>Uplay API r1</Description>
-	<Product>Ubisoft</Product>
-	<Copyright>(c) Ubisoft</Copyright>
-	<NeutralLanguage>en-US</NeutralLanguage>
-	<Version>158.0.11194</Version>
-	<AssemblyName>upc_r1</AssemblyName>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net9.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<Platforms>AnyCPU;x86;x64</Platforms>
+		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+		<IsAotCompatible>True</IsAotCompatible>
+		<PublishAot>true</PublishAot>
+		<AssemblyVersion>158.0.11194.0</AssemblyVersion>
+		<FileVersion>158.0.11194</FileVersion>
+		<Description>Uplay API r1</Description>
+		<Product>Ubisoft</Product>
+		<Copyright>(c) Ubisoft</Copyright>
+		<NeutralLanguage>en-US</NeutralLanguage>
+		<Version>158.0.11194</Version>
+		<AssemblyName>upc_r1</AssemblyName>
+		<DebuggerSupport>False</DebuggerSupport>
+		<OptimizationPreference>Size</OptimizationPreference>
+		<InvariantGlobalization>true</InvariantGlobalization>
+		<StackTraceSupport>false</StackTraceSupport>
+		<PublishTrimmed>true</PublishTrimmed>
+		<EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+	</PropertyGroup>
 
 	<PropertyGroup>
 		<AssemblyName Condition=" '$(Platform)'=='x64' ">$(AssemblyName)64</AssemblyName>
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="BepInEx.AssemblyPublicizer.MSBuild" Version="0.4.3">
-	    <PrivateAssets>all</PrivateAssets>
-	    <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-	  </PackageReference>
-	  <PackageReference Include="ServerEmus.DllShared" Version="1.0.0" />
-	  <PackageReference Include="ServerEmus.Shared" Version="1.1.0" />
-	  <PackageReference Include="StbImageSharp" Version="2.30.15" Publicize="true" />
-	  <PackageReference Include="Uplay-Protobufs" Version="161.1.11646" />
+		<PackageReference Include="BepInEx.AssemblyPublicizer.MSBuild" Version="0.4.3">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="Obfuscar" Version="2.2.49">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="ServerEmus.DllShared" Version="1.0.0" />
+		<PackageReference Include="ServerEmus.Shared" Version="1.1.0" />
+		<PackageReference Include="StbImageSharp" Version="2.30.15" Publicize="true" />
+		<PackageReference Include="Uplay-Protobufs" Version="161.1.11646" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<None Update="upc.json">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
+		<Using Include="DllShared.MarshalHelper" Static="true" />
+		<Using Include="Serilog" />
+		<Using Include="System.Runtime.CompilerServices" />
+		<Using Include="System.Runtime.InteropServices" />
 	</ItemGroup>
 
-	<ItemGroup>
-	  <Using Include="DllShared.MarshalHelper">
-	    <Static>True</Static>
-	  </Using>
-	  <Using Include="Serilog" />
-	  <Using Include="System.Runtime.CompilerServices" />
-	  <Using Include="System.Runtime.InteropServices" />
-	</ItemGroup>
+	<Target Name="Obfuscation" AfterTargets="AfterCompile" Condition="'$(Configuration)'=='Release'">
+		<Message Text="Obfuscating" Importance="high" />
+		<Exec Condition="'$(_IsPublishing)' == 'true' and '$(Platform)'=='x64'" Command="$(Obfuscar) -v:q obfuscar_publish_x64.xml" />
+		<Exec Condition="'$(_IsPublishing)' == 'true' and '$(Platform)'=='x86'" Command="$(Obfuscar) -v:q obfuscar_publish_x86.xml" />
+		<Exec Condition="'$(_IsPublishing)' == '' and '$(Platform)'=='x64'" Command="$(Obfuscar) -v:q obfuscar_release_x64.xml" />
+		<Exec Condition="'$(_IsPublishing)' == '' and '$(Platform)'!='x64'" Command="$(Obfuscar) -v:q obfuscar_release.xml" />
+		<Exec Command="COPY $(ProjectDir)$(IntermediateOutputPath)Protected\$(TargetFileName) $(ProjectDir)$(IntermediateOutputPath)$(TargetFileName)" />
+		<Exec Command="COPY $(ProjectDir)$(IntermediateOutputPath)Protected\Mapping.txt $(OutputPath)Mapping.txt" />
+	</Target>
+	
+	<Target Name="MoveMapping" AfterTargets="Publish" Condition="'$(Configuration)'=='Release'">
+		<Message Text="Move Mapping" Importance="high" />
+		<Exec Command="COPY $(ProjectDir)$(IntermediateOutputPath)Protected\Mapping.txt $(PublishDir)Mapping.txt" />
+	</Target>
 </Project>
