@@ -23,6 +23,7 @@ public enum UPLAY_EventType
     UPLAY_Event_UserConnectionLost,
     UPLAY_Event_UserConnectionRestored
 }
+
 public enum UPLAY_OVERLAY_Section
 {
     UPLAY_OverlaySection_Show,
@@ -37,15 +38,15 @@ public enum UPLAY_OVERLAY_Section
 
 public enum UPLAY_OverlappedResult
 {
-    UPLAY_OverlappedResult_Ok,
-    UPLAY_OverlappedResult_InvalidArgument,
-    UPLAY_OverlappedResult_ConnectionError,
-    UPLAY_OverlappedResult_NotFound,
-    UPLAY_OverlappedResult_NotAPartyLeader,
-    UPLAY_OverlappedResult_PartyFull,
-    UPLAY_OverlappedResult_Failed,
-    UPLAY_OverlappedResult_AlreadyOpened,
-    UPLAY_OverlappedResult_SlotLocked
+    Ok,
+    InvalidArgument,
+    ConnectionError,
+    NotFound,
+    NotAPartyLeader,
+    PartyFull,
+    Failed,
+    AlreadyOpened,
+    SlotLocked
 }
 
 public enum UplayStartResult

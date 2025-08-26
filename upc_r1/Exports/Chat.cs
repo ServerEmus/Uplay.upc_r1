@@ -9,7 +9,7 @@ internal class Chat
     public static bool UPLAY_CHAT_GetHistory(IntPtr accountIdUtf8, uint maxNumberOfMessages, IntPtr OutHistoryList, IntPtr Overlapped)
     {
         Log.Verbose("[{Function}] {Param1} {Param2} {Param3} {Param4}", nameof(UPLAY_CHAT_GetHistory), accountIdUtf8, maxNumberOfMessages, OutHistoryList, Overlapped);
-        Basics.WriteOverlappedResult(Overlapped, false, UPLAY_OverlappedResult.UPLAY_OverlappedResult_Failed);
+        Basics.WriteOverlappedResult(Overlapped, false, UPLAY_OverlappedResult.Failed);
         return false;
     }
 

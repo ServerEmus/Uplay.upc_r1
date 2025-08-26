@@ -1,4 +1,6 @@
-﻿namespace upc_r1.Exports;
+﻿using System.Collections.Generic;
+
+namespace upc_r1.Exports;
 
 internal class User
 {
@@ -54,7 +56,15 @@ internal class User
     public static bool UPLAY_USER_GetCdKeys(IntPtr aOutCdKeyList, IntPtr aOverlapped)
     {
         Log.Information(nameof(UPLAY_USER_GetCdKeys), [aOutCdKeyList, aOverlapped]);
-        return false;
+        var uplayKeys = UPC_Json.Instance.CDKeys;
+        int count = uplayKeys.Count;
+
+        List<UplayKey> keys = [.. UPC_Json.Instance.CDKeys.Select(x => new UplayKey() { CdKey = Marshal.StringToHGlobalAnsi(x.Key) })];
+
+        WriteOutList(aOutCdKeyList, keys);
+
+        Basics.WriteOverlappedResult(aOverlapped, true, aOverlapped != IntPtr.Zero ? UPLAY_OverlappedResult.Ok : UPLAY_OverlappedResult.Failed);
+        return true;
     }
 
     [UnmanagedCallersOnly(EntryPoint = "UPLAY_USER_GetConsumableItems", CallConvs = [typeof(CallConvCdecl)])]

@@ -24,13 +24,13 @@ internal static class Avatar
         Log.Verbose("[{Function}] {AvatarId} {AvatarSize} {OutRGBA} {Overlapped}", nameof(UPLAY_AVATAR_GetBitmap), AccountIdUtf8, AvatarSize, OutRGBA, Overlapped);
         if (string.IsNullOrEmpty(UPC_Json.Instance.AvatarsPath))
         {
-            Basics.WriteOverlappedResult(Overlapped, false, UPLAY_OverlappedResult.UPLAY_OverlappedResult_Failed);
+            Basics.WriteOverlappedResult(Overlapped, false, UPLAY_OverlappedResult.Failed);
             return false;
         }
         string? accountid = Marshal.PtrToStringAnsi(AccountIdUtf8);
         if (string.IsNullOrEmpty(accountid))
         {
-            Basics.WriteOverlappedResult(Overlapped, false, UPLAY_OverlappedResult.UPLAY_OverlappedResult_Failed);
+            Basics.WriteOverlappedResult(Overlapped, false, UPLAY_OverlappedResult.Failed);
             return false;
         }
         Uplay.Uplaydll.AvatarSize size = (Uplay.Uplaydll.AvatarSize)AvatarSize;
@@ -44,7 +44,7 @@ internal static class Avatar
         string path = Path.Combine(UPC_Json.Instance.AvatarsPath, $"{accountid}_{sizeStr}.png");
         if (!File.Exists(path))
         {
-            Basics.WriteOverlappedResult(Overlapped, false, UPLAY_OverlappedResult.UPLAY_OverlappedResult_Failed);
+            Basics.WriteOverlappedResult(Overlapped, false, UPLAY_OverlappedResult.Failed);
             return false;
         }
         using var stream = File.OpenRead(path);
@@ -65,7 +65,7 @@ internal static class Avatar
             data[i * 4 + 3] = a;
         }
         Marshal.Copy(data, 0, OutRGBA, data.Length);
-        Basics.WriteOverlappedResult(Overlapped, true, UPLAY_OverlappedResult.UPLAY_OverlappedResult_Ok);
+        Basics.WriteOverlappedResult(Overlapped, true, UPLAY_OverlappedResult.Ok);
         return true;
     }
 

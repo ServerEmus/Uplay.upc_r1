@@ -46,12 +46,12 @@ public struct UPLAY_Event
 [StructLayout(LayoutKind.Sequential, Pack = 8)]
 public struct UPLAY_SAVE_Game
 {
-    [MarshalAs(UnmanagedType.U4)]
-    public uint id;
+    [MarshalAs(UnmanagedType.U8)]
+    public ulong id;
     [MarshalAs(UnmanagedType.LPStr)]
     public string nameUtf8;
-    [MarshalAs(UnmanagedType.U4)]
-    public uint size;
+    [MarshalAs(UnmanagedType.U8)]
+    public ulong size;
 }
 
 [StructLayout(LayoutKind.Sequential, Pack = 8)]
@@ -143,6 +143,13 @@ public struct UPLAY_WIN_Reward
     [MarshalAs(UnmanagedType.LPStr)]
     public string imgUrlUtf8;
     public bool redeemed;
+}
+
+[StructLayout(LayoutKind.Sequential)]
+public struct UplayKey
+{
+    [MarshalAs(UnmanagedType.SysInt)]
+    public IntPtr CdKey; // const char*
 }
 
 // Events

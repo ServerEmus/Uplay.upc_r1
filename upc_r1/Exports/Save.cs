@@ -1,16 +1,76 @@
-﻿using System.Runtime.InteropServices;
+﻿namespace upc_r1.Exports;
 
-namespace upc_r1.Exports;
+internal class SaveSlot
+{
+    public uint Mode { get; set; }          // +0: 0=read, 1=write
+    public uint SlotId { get; set; }        // +4: slot identifier  
+    public ulong HeaderSize { get; set; }   // +8: 552 bytes
+    public FileStream? FileHandle { get; set; } // +16: file stream
+    public string? SaveName { get; set; }   // +24: save name for header
+
+    public SaveSlot()
+    {
+        HeaderSize = 552;
+    }
+}
 
 internal class Save
 {
-    static readonly Dictionary<int, string> PtrToFilePath = [];
+    static readonly SaveSlot?[] SaveSlots = new SaveSlot[256];
 
     [UnmanagedCallersOnly(EntryPoint = "UPLAY_SAVE_Close", CallConvs = [typeof(CallConvCdecl)])]
-    public static bool UPLAY_SAVE_Close(IntPtr SaveHandle)
+    public static bool UPLAY_SAVE_Close(IntPtr SlotId)
     {
-        Log.Verbose("[{Function}] {SaveHandle}", nameof(UPLAY_SAVE_Close), SaveHandle);
-        PtrToFilePath.Remove(SaveHandle.ToInt32());
+        Log.Verbose("[{Function}] {SlotId}", nameof(UPLAY_SAVE_Close), SlotId);
+        if (SlotId < 0 || SlotId >= SaveSlots.Length)
+            return false;
+
+        var slot = SaveSlots[SlotId];
+        if (slot == null)
+            return false;
+        // If mode was 1 (write), write the formatted header
+        if (slot.Mode == 1)
+        {
+            // Set default name if not provided
+            slot.SaveName ??= "Unnamed";
+
+            // Build file path
+            string baseSavePath = UPC_Json.Instance.Save.Path;
+            string savePath = UPC_Json.Instance.Save.UseAppIdInName
+                ? Path.Combine(baseSavePath, Main.ProductId.ToString(), $"{SlotId}.save")
+                : Path.Combine(baseSavePath, $"{SlotId}.save");
+
+            try
+            {
+                using var fileStream = new FileStream(savePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+                fileStream.Seek(0, SeekOrigin.Begin);
+
+                // Create 552-byte header
+                byte[] header = new byte[552];
+
+                // Write header size - 4 at offset 0
+                uint headerSizeValue = (uint)(slot.HeaderSize - 4);
+                BitConverter.GetBytes(headerSizeValue).CopyTo(header, 0);
+
+                // Write save name as Unicode at offset 40
+                byte[] nameBytes = System.Text.Encoding.Unicode.GetBytes(slot.SaveName);
+                int maxNameBytes = Math.Min(nameBytes.Length, 552 - 40);
+                Array.Copy(nameBytes, 0, header, 40, maxNameBytes);
+
+                fileStream.Write(header);
+                fileStream.Flush();
+            }
+            catch (Exception ex)
+            {
+                Log.Verbose("[{Function}] Header write failed: {Message}", nameof(UPLAY_SAVE_Close),ex.Message);
+            }
+        }
+        
+        // Close file handle if it exists
+        slot.FileHandle?.Dispose();
+
+        // Clear slot
+        SaveSlots[SlotId] = null;
         return true;
     }
 
@@ -20,28 +80,61 @@ internal class Save
         Log.Verbose("[{Function}] {OutGamesList} {Overlapped}", nameof(UPLAY_SAVE_GetSavegames), OutGamesList, Overlapped);
         if (OutGamesList == IntPtr.Zero)
             return false;
-        string savepath = UPC_Json.Instance.Save.Path;
-        if (!Directory.Exists(savepath))
-            Directory.CreateDirectory(savepath);
+        string baseSavePath = UPC_Json.Instance.Save.Path;
+        string savePath = UPC_Json.Instance.Save.UseAppIdInName
+            ? Path.Combine(baseSavePath, Main.ProductId.ToString())
+            : baseSavePath;
+        if (!Directory.Exists(savePath))
+            Directory.CreateDirectory(savePath);
+        ReadOnlySpan<string> files = Directory.GetFiles(savePath, "*.save");
         List<UPLAY_SAVE_Game> saves = [];
-        uint i = 1;
-        foreach (var item in Directory.GetFiles(savepath))
+        foreach (var item in files)
         {
             if (string.IsNullOrEmpty(item))
                 continue;
-
             FileInfo info = new(item);
-            UPLAY_SAVE_Game saveGame = new()
+
+            string filenameWithoutExt = Path.GetFileNameWithoutExtension(info.Name);
+
+            if (!ulong.TryParse(filenameWithoutExt, out ulong fileId))
+                continue;
+            string saveName = "Unnamed";
+            try
             {
-                nameUtf8 = info.Name,
-                id = i,
-                size = (uint)info.Length
-            };
-            saves.Add(saveGame);
-            i++;
+                using FileStream fileStream = new(item, FileMode.Open, FileAccess.Read, FileShare.Read);
+                if (fileStream.Length >= 552)
+                {
+                    byte[] header = new byte[552];
+                    fileStream.ReadExactly(header, 0, 552);
+
+                    // Extract Unicode save name from offset 40
+                    List<byte> nameBytes = [];
+                    for (int i = 40; i < 551; i += 2)
+                    {
+                        byte low = header[i];
+                        byte high = header[i + 1];
+                        if (low == 0 && high == 0) break;
+                        nameBytes.Add(low);
+                        nameBytes.Add(high);
+                    }
+
+                    if (nameBytes.Count > 0)
+                        saveName = System.Text.Encoding.Unicode.GetString([.. nameBytes]);
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Verbose("[{Function}] Header read failed: {Message}", nameof(UPLAY_SAVE_GetSavegames), ex.Message);
+            }
+            saves.Add(new()
+            {
+                nameUtf8 = saveName,
+                id = fileId,
+                size = (ulong)(info.Length - 552)
+            });
         }
         WriteOutList(OutGamesList, saves);
-        Basics.WriteOverlappedResult(Overlapped, true, UPLAY_OverlappedResult.UPLAY_OverlappedResult_Ok);
+        Basics.WriteOverlappedResult(Overlapped, true, UPLAY_OverlappedResult.Ok);
         return true;
     }
 
@@ -49,61 +142,122 @@ internal class Save
     public static bool UPLAY_SAVE_Open(uint SlotId, uint Mode, IntPtr OutSaveHandle, IntPtr Overlapped)
     {
         Log.Verbose("[{Function}] {SlotId} {Mode} {OutSaveHandle} {Overlapped}", nameof(UPLAY_SAVE_GetSavegames), SlotId, Mode, OutSaveHandle, Overlapped);
-        string jsonSavePath = UPC_Json.Instance.Save.Path;
-        string savePath = string.Empty;
-        if (UPC_Json.Instance.Save.UseAppIdInName)
-            savePath = Path.Combine(jsonSavePath, Main.ProductId.ToString(), $"{SlotId}.save");
-        else
-            savePath = Path.Combine(jsonSavePath, $"{SlotId}.save");
+        if (SlotId >= SaveSlots.Length)
+        {
+            Basics.WriteOverlappedResult(Overlapped, false, UPLAY_OverlappedResult.InvalidArgument);
+            return false;
+        }
+
+        SaveSlots[SlotId] = new()
+        { 
+            Mode = Mode,
+            SlotId = SlotId,
+            HeaderSize = 552,
+            FileHandle = null,
+            SaveName = null
+        };
+        string baseSavePath = UPC_Json.Instance.Save.Path;
+        string savePath = UPC_Json.Instance.Save.UseAppIdInName
+            ? Path.Combine(baseSavePath, Main.ProductId.ToString(), $"{SlotId}.save")
+            : Path.Combine(baseSavePath, $"{SlotId}.save");
         Log.Verbose("[{Function}] Save Path: {Path}", nameof(UPLAY_SAVE_GetSavegames), savePath);
         if (!Directory.Exists(Path.GetDirectoryName(savePath)))
             Directory.CreateDirectory(Path.GetDirectoryName(savePath)!);
         if (!File.Exists(savePath))
             File.Create(savePath).Close();
-        int ptr = Random.Shared.Next();
-        PtrToFilePath.Add(ptr, savePath);
-        Marshal.WriteInt32(OutSaveHandle, 0, ptr);
-        Basics.WriteOverlappedResult(Overlapped, true, UPLAY_OverlappedResult.UPLAY_OverlappedResult_Ok);
+
+        FileStream? fileStream = null;
+
+        if (Mode == 0) // Read mode
+        {
+            if (!File.Exists(savePath))
+            {
+                Basics.WriteOverlappedResult(Overlapped, false, UPLAY_OverlappedResult.Failed);
+                return false;
+            }
+
+            try
+            {
+                fileStream = new FileStream(savePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+            }
+            catch (Exception ex)
+            {
+                Log.Verbose("[{Function}] Failed to open for read: {Message}", nameof(UPLAY_SAVE_Open), ex.Message);
+                Basics.WriteOverlappedResult(Overlapped, false, UPLAY_OverlappedResult.Failed);
+                return false;
+            }
+        }
+        else if (Mode == 1) // Write mode
+        {
+            if (!File.Exists(savePath))
+            {
+                try
+                {
+                    // Create file with initial 552-byte header
+                    using var fs = new FileStream(savePath, FileMode.Create, FileAccess.Write, FileShare.None);
+                    byte[] header = new byte[552];
+                    fs.Write(header);
+                }
+                catch (Exception ex)
+                {
+                    Log.Verbose("[{Function}] Failed to create file: {Message}", nameof(UPLAY_SAVE_Open), ex.Message);
+                    Basics.WriteOverlappedResult(Overlapped, false, UPLAY_OverlappedResult.Failed);
+                    return false;
+                }
+            }
+            fileStream = null; // Don't keep stream open for write mode
+        }
+
+        SaveSlots[SlotId]!.FileHandle = fileStream;
+
+        Marshal.WriteInt32(OutSaveHandle, 0, (int)SlotId);
+        Basics.WriteOverlappedResult(Overlapped, true, UPLAY_OverlappedResult.Ok);
         return true;
     }
 
     [UnmanagedCallersOnly(EntryPoint = "UPLAY_SAVE_Read", CallConvs = [typeof(CallConvCdecl)])]
-    public static bool UPLAY_SAVE_Read(IntPtr SaveHandle, uint NumOfBytesToRead, uint Offset, IntPtr OutBuffer, IntPtr OutNumOfBytesRead, IntPtr Overlapped)
+    public static bool UPLAY_SAVE_Read(int SlotId, uint NumOfBytesToRead, uint Offset, IntPtr OutBuffer, IntPtr OutNumOfBytesRead, IntPtr Overlapped)
     {
-        Log.Verbose("[{Function}] {SaveHandle} {NumOfBytesToRead} {Offset} {OutBuffer} {OutNumOfBytesRead} {Overlapped}", nameof(UPLAY_SAVE_GetSavegames), SaveHandle, NumOfBytesToRead, Offset, OutBuffer, OutNumOfBytesRead, Overlapped);
-        if (SaveHandle == 0)
+        Log.Verbose("[{Function}] {SaveHandle} {NumOfBytesToRead} {Offset} {OutBuffer} {OutNumOfBytesRead} {Overlapped}", nameof(UPLAY_SAVE_GetSavegames), SlotId, NumOfBytesToRead, Offset, OutBuffer, OutNumOfBytesRead, Overlapped);
+
+
+        if (SlotId < 0 || SlotId >= SaveSlots.Length)
         {
-            Basics.WriteOverlappedResult(Overlapped, false, UPLAY_OverlappedResult.UPLAY_OverlappedResult_InvalidArgument);
-            return false;
+            Marshal.WriteInt32(OutNumOfBytesRead, 0);
+            Basics.WriteOverlappedResult(Overlapped, true, UPLAY_OverlappedResult.Ok);
         }
-        if (!PtrToFilePath.TryGetValue(SaveHandle.ToInt32(), out string? path))
+        string baseSavePath = UPC_Json.Instance.Save.Path;
+        string savePath = UPC_Json.Instance.Save.UseAppIdInName
+            ? Path.Combine(baseSavePath, Main.ProductId.ToString(), $"{SlotId}.save")
+            : Path.Combine(baseSavePath, $"{SlotId}.save");
+
+        IntPtr actualBuffer = Marshal.ReadIntPtr(OutBuffer);
+        bool success = false;
+        int bytesRead = 0;
+
+        try
         {
-            Basics.WriteOverlappedResult(Overlapped, false, UPLAY_OverlappedResult.UPLAY_OverlappedResult_InvalidArgument);
-            return false;
+            using var fileStream = new FileStream(savePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+            long seekPosition = Offset + 552; // Skip header
+            fileStream.Seek(seekPosition, SeekOrigin.Begin);
+
+            byte[] tempBuffer = new byte[NumOfBytesToRead];
+            bytesRead = fileStream.Read(tempBuffer, 0, (int)NumOfBytesToRead);
+
+            Marshal.WriteInt32(OutNumOfBytesRead, bytesRead);
+
+            if (actualBuffer != IntPtr.Zero && bytesRead > 0)
+                Marshal.Copy(tempBuffer, 0, actualBuffer, bytesRead);
+
+            success = bytesRead > 0;
         }
-        if (path == null)
+        catch (Exception ex)
         {
-            Basics.WriteOverlappedResult(Overlapped, false, UPLAY_OverlappedResult.UPLAY_OverlappedResult_InvalidArgument);
-            return false;
+            Log.Verbose("[{Function}] Read failed: {Message}", nameof(UPLAY_SAVE_Read), ex.Message);
+            Marshal.WriteInt32(OutNumOfBytesRead, 0);
         }
-        if (NumOfBytesToRead <= 0)
-        {
-            Basics.WriteOverlappedResult(Overlapped, false, UPLAY_OverlappedResult.UPLAY_OverlappedResult_InvalidArgument);
-            return false;
-        }
-        FileStream filestream = File.OpenRead(path);
-        var buff = new byte[NumOfBytesToRead];
-        var readed = filestream.Read(buff, (int)Offset, (int)NumOfBytesToRead);
-        filestream.Close();
-        if (readed < 0)
-        {
-            Basics.WriteOverlappedResult(Overlapped, false, UPLAY_OverlappedResult.UPLAY_OverlappedResult_InvalidArgument);
-            return false;
-        }
-        Marshal.WriteInt32(OutNumOfBytesRead, readed);
-        Marshal.Copy(buff, 0, OutBuffer, buff.Length);
-        Basics.WriteOverlappedResult(Overlapped, true, UPLAY_OverlappedResult.UPLAY_OverlappedResult_Ok);
-        return true;
+        Basics.WriteOverlappedResult(Overlapped, true, UPLAY_OverlappedResult.Ok);
+        return success;
     }
 
     [UnmanagedCallersOnly(EntryPoint = "UPLAY_SAVE_ReleaseGameList", CallConvs = [typeof(CallConvCdecl)])]
@@ -120,59 +274,100 @@ internal class Save
     public static bool UPLAY_SAVE_Remove(uint SlotId, IntPtr Overlapped)
     {
         Log.Verbose("[{Function}] {SlotId} {Overlapped}", nameof(UPLAY_SAVE_Remove), SlotId, Overlapped);
-        string savepath = UPC_Json.Instance.Save.Path;
-        if (!Directory.Exists(savepath))
-            Directory.CreateDirectory(savepath);
-        if (UPC_Json.Instance.Save.UseAppIdInName)
-            savepath = Path.Combine(savepath, Main.ProductId.ToString(), $"{SlotId}.save");
-        var files = Directory.GetFiles(savepath);
-        if (files.Length > SlotId - 1)
+        string baseSavePath = UPC_Json.Instance.Save.Path;
+        string savePath = UPC_Json.Instance.Save.UseAppIdInName
+            ? Path.Combine(baseSavePath, Main.ProductId.ToString(), $"{SlotId}.save")
+            : Path.Combine(baseSavePath, $"{SlotId}.save");
+
+        try
         {
-            Basics.WriteOverlappedResult(Overlapped, true, UPLAY_OverlappedResult.UPLAY_OverlappedResult_Failed);
+            if (File.Exists(savePath))
+                File.Delete(savePath);
+
+            Basics.WriteOverlappedResult(Overlapped, true, UPLAY_OverlappedResult.Ok);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Log.Verbose("[{Function}] Remove failed: {Message}", nameof(UPLAY_SAVE_Remove), ex.Message);
+            Basics.WriteOverlappedResult(Overlapped, true, UPLAY_OverlappedResult.Failed);
             return false;
         }
-        var file = files.ElementAt((int)SlotId - 1);
-        File.Delete(file);
-        Basics.WriteOverlappedResult(Overlapped, true, UPLAY_OverlappedResult.UPLAY_OverlappedResult_Ok);
-        return true;
     }
 
     [UnmanagedCallersOnly(EntryPoint = "UPLAY_SAVE_SetName", CallConvs = [typeof(CallConvCdecl)])]
-    public static bool UPLAY_SAVE_SetName(IntPtr SaveHandle, IntPtr NameUtf8)
+    public static bool UPLAY_SAVE_SetName(uint SlotId, IntPtr NameUtf8)
     {
-        Log.Verbose("[{Function}] {SaveHandle} {NameUtf8}", nameof(UPLAY_SAVE_SetName), SaveHandle, NameUtf8);
+        Log.Verbose("[{Function}] {SlotId} {NameUtf8}", nameof(UPLAY_SAVE_SetName), SlotId, NameUtf8);
         string? nameUtf = Marshal.PtrToStringAnsi(NameUtf8);
-        if (string.IsNullOrEmpty(nameUtf))
-            return false;
-        if (!PtrToFilePath.TryGetValue(SaveHandle.ToInt32(), out string? path))
-            return false;
-        if (path == null)
-            return false;
-        string newFileName = path.Replace(Path.GetFileNameWithoutExtension(path), nameUtf);
-        File.Copy(path, newFileName);
+        SaveSlots[SlotId]!.SaveName = nameUtf;
         return true;
     }
 
     [UnmanagedCallersOnly(EntryPoint = "UPLAY_SAVE_Write", CallConvs = [typeof(CallConvCdecl)])]
-    public static bool UPLAY_SAVE_Write(IntPtr SaveHandle, uint NumOfBytesToWrite, IntPtr Buffer, IntPtr Overlapped)
+    public static bool UPLAY_SAVE_Write(uint SlotId, uint NumOfBytesToWrite, IntPtr Buffer, IntPtr Overlapped)
     {
-        Log.Verbose("[{Function}] {SaveHandle} {NumOfBytesToWrite} {Buffer} {Overlapped}", nameof(UPLAY_SAVE_Write), SaveHandle, NumOfBytesToWrite, Buffer, Overlapped);
-        if (!PtrToFilePath.TryGetValue(SaveHandle.ToInt32(), out string? path))
+        Log.Verbose("[{Function}] {SaveHandle} {NumOfBytesToWrite} {Buffer} {Overlapped}", nameof(UPLAY_SAVE_Write), SlotId, NumOfBytesToWrite, Buffer, Overlapped);
+        if (SlotId >= SaveSlots.Length)
         {
-            Basics.WriteOverlappedResult(Overlapped, true, UPLAY_OverlappedResult.UPLAY_OverlappedResult_Failed);
+            Basics.WriteOverlappedResult(Overlapped, true, UPLAY_OverlappedResult.Ok);
             return false;
         }
-        if (path == null)
+        var slot = SaveSlots[SlotId];
+        if (slot == null)
         {
-            Basics.WriteOverlappedResult(Overlapped, true, UPLAY_OverlappedResult.UPLAY_OverlappedResult_Failed);
+            Basics.WriteOverlappedResult(Overlapped, true, UPLAY_OverlappedResult.Ok);
             return false;
         }
-        var stream = new FileStream(path, FileMode.OpenOrCreate, FileAccess.ReadWrite);
-        var buff = new byte[NumOfBytesToWrite];
-        Marshal.Copy(Buffer, buff, 0, (int)NumOfBytesToWrite);
-        stream.Write(buff);
-        stream.Flush(true);
-        stream.Close();
-        return true;
+        // Build file path
+        string baseSavePath = UPC_Json.Instance.Save.Path;
+        string savePath = UPC_Json.Instance.Save.UseAppIdInName
+            ? Path.Combine(baseSavePath, Main.ProductId.ToString(), $"{SlotId}.save")
+            : Path.Combine(baseSavePath, $"{SlotId}.save");
+
+        IntPtr actualBuffer = Marshal.ReadIntPtr(Buffer);
+        if (actualBuffer == IntPtr.Zero)
+        {
+            Basics.WriteOverlappedResult(Overlapped, true, UPLAY_OverlappedResult.Ok);
+            return false;
+        }
+
+        bool success = false;
+        try
+        {
+            byte[] buffer = new byte[NumOfBytesToWrite];
+            Marshal.Copy(actualBuffer, buffer, 0, (int)NumOfBytesToWrite);
+
+            using var fileStream = new FileStream(savePath, FileMode.OpenOrCreate, FileAccess.ReadWrite);
+            fileStream.Seek(552, SeekOrigin.Begin);
+            fileStream.Write(buffer);
+
+            // Truncate to exact size to match original DLL behavior
+            fileStream.SetLength(552 + buffer.Length);
+            fileStream.Flush(true);
+
+            success = true;
+            var uploadPath = savePath + ".upload";
+            try
+            {
+                using var uploadStream = new FileStream(uploadPath, FileMode.Create, FileAccess.Write);
+                // Original just creates/opens the upload file, content might be empty or minimal
+                uploadStream.Flush(true);
+                Log.Verbose("[{Function}] Created upload file: {uploadPath}", nameof(UPLAY_SAVE_Remove), uploadPath);
+            }
+            catch (Exception uploadEx)
+            {
+                Log.Verbose("[{Function}] Failed to create upload file: {Message}", nameof(UPLAY_SAVE_Remove), uploadEx.Message);
+                Basics.WriteOverlappedResult(Overlapped, true, UPLAY_OverlappedResult.Failed);
+                return false;
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Verbose("[{Function}] Write failed: {Message}", nameof(UPLAY_SAVE_Remove), ex.Message);
+        }
+
+        Basics.WriteOverlappedResult(Overlapped, true, UPLAY_OverlappedResult.Ok);
+        return success;
     }
 }

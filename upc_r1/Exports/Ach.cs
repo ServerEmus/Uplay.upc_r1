@@ -9,12 +9,12 @@ internal static class Ach
         var achi = UPC_Json.Instance.Achis.FirstOrDefault(x => x.Id == AchivementId);
         if (achi == null)
         {
-            Basics.WriteOverlappedResult(Overlapped, false, UPLAY_OverlappedResult.UPLAY_OverlappedResult_Failed);
+            Basics.WriteOverlappedResult(Overlapped, false, UPLAY_OverlappedResult.Failed);
             return false;
         }
         achi.Achieved = true;
         UPC_Json.SaveToJson();
-        Basics.WriteOverlappedResult(Overlapped, true, UPLAY_OverlappedResult.UPLAY_OverlappedResult_Ok);
+        Basics.WriteOverlappedResult(Overlapped, true, UPLAY_OverlappedResult.Ok);
         return true;
     }
 
@@ -42,7 +42,7 @@ internal static class Ach
             });
         }
         WriteOutList(OutAchievementList, Achis);
-        Basics.WriteOverlappedResult(Overlapped, true, UPLAY_OverlappedResult.UPLAY_OverlappedResult_Ok);
+        Basics.WriteOverlappedResult(Overlapped, true, UPLAY_OverlappedResult.Ok);
         return true;
     }
 
@@ -51,7 +51,7 @@ internal static class Ach
     {
         Log.Verbose("[{Function}] {Image}", nameof(UPLAY_ACH_ReleaseAchievementImage), Image);
         Marshal.FreeHGlobal(Image);
-        return false;
+        return true;
     }
 
     [UnmanagedCallersOnly(EntryPoint = "UPLAY_ACH_ReleaseAchievementList", CallConvs = [typeof(CallConvCdecl)])]
