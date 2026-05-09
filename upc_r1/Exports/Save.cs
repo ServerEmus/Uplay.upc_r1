@@ -1,4 +1,6 @@
-﻿namespace upc_r1.Exports;
+﻿using DllShared;
+
+namespace upc_r1.Exports;
 
 internal class SaveSlot
 {
@@ -36,6 +38,8 @@ internal class Save
 
             // Build file path
             string baseSavePath = UPC_Json.Instance.Save.Path;
+            if (string.IsNullOrEmpty(baseSavePath))
+                baseSavePath = AOTHelper.CurrentPath;
             string savePath = UPC_Json.Instance.Save.UseAppIdInName
                 ? Path.Combine(baseSavePath, Main.ProductId.ToString(), $"{SlotId}.save")
                 : Path.Combine(baseSavePath, $"{SlotId}.save");
@@ -82,7 +86,7 @@ internal class Save
             return false;
         string baseSavePath = UPC_Json.Instance.Save.Path;
         if (string.IsNullOrEmpty(baseSavePath))
-            baseSavePath = DllShared.AOTHelper.CurrentPath;
+            baseSavePath = AOTHelper.CurrentPath;
         string savePath = UPC_Json.Instance.Save.UseAppIdInName
             ? Path.Combine(baseSavePath, Main.ProductId.ToString())
             : baseSavePath;
@@ -159,6 +163,8 @@ internal class Save
             SaveName = null
         };
         string baseSavePath = UPC_Json.Instance.Save.Path;
+        if (string.IsNullOrEmpty(baseSavePath))
+            baseSavePath = AOTHelper.CurrentPath;
         string savePath = UPC_Json.Instance.Save.UseAppIdInName
             ? Path.Combine(baseSavePath, Main.ProductId.ToString(), $"{SlotId}.save")
             : Path.Combine(baseSavePath, $"{SlotId}.save");
@@ -229,6 +235,9 @@ internal class Save
             Basics.WriteOverlappedResult(Overlapped, true, UPLAY_OverlappedResult.Ok);
         }
         string baseSavePath = UPC_Json.Instance.Save.Path;
+        if (string.IsNullOrEmpty(baseSavePath))
+            baseSavePath = AOTHelper.CurrentPath;
+
         string savePath = UPC_Json.Instance.Save.UseAppIdInName
             ? Path.Combine(baseSavePath, Main.ProductId.ToString(), $"{SlotId}.save")
             : Path.Combine(baseSavePath, $"{SlotId}.save");
@@ -277,6 +286,9 @@ internal class Save
     {
         Log.Verbose("[{Function}] {SlotId} {Overlapped}", nameof(UPLAY_SAVE_Remove), SlotId, Overlapped);
         string baseSavePath = UPC_Json.Instance.Save.Path;
+        if (string.IsNullOrEmpty(baseSavePath))
+            baseSavePath = AOTHelper.CurrentPath;
+
         string savePath = UPC_Json.Instance.Save.UseAppIdInName
             ? Path.Combine(baseSavePath, Main.ProductId.ToString(), $"{SlotId}.save")
             : Path.Combine(baseSavePath, $"{SlotId}.save");
@@ -323,6 +335,9 @@ internal class Save
         }
         // Build file path
         string baseSavePath = UPC_Json.Instance.Save.Path;
+        if (string.IsNullOrEmpty(baseSavePath))
+            baseSavePath = AOTHelper.CurrentPath;
+
         string savePath = UPC_Json.Instance.Save.UseAppIdInName
             ? Path.Combine(baseSavePath, Main.ProductId.ToString(), $"{SlotId}.save")
             : Path.Combine(baseSavePath, $"{SlotId}.save");

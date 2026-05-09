@@ -66,6 +66,14 @@ internal static class Ach
     public static bool UPLAY_ACH_Write(uint AchievementId)
     {
         Log.Verbose("[{Function}] {AchievementId}", nameof(UPLAY_ACH_Write), AchievementId);
-        return false;
+        // This is same as earned?
+        var achi = UPC_Json.Instance.Achis.FirstOrDefault(x => x.Id == AchievementId);
+        if (achi == null)
+        {
+            return false;
+        }
+        achi.Achieved = true;
+        UPC_Json.SaveToJson();
+        return true;
     }
 }
