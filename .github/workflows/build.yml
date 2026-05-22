@@ -17,10 +17,10 @@ jobs:
     permissions: read-all
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
     - name: Setup .NET
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v5
       with:
         dotnet-version: 10.0.x
 
@@ -34,16 +34,16 @@ jobs:
       run: dotnet publish ${{ env.ProjName }}/${{ env.ProjName }}.csproj -r win-x86 -c:Release -p:Platform=x86 -o Out
 
     - name : Sign
-      uses: dlemstra/code-sign-action@v1
+      uses: ServerEmus/sign_action@main
       continue-on-error: true
       with:
         certificate: '${{ secrets.Sign_PFX }}'
-        folder: 'Out'
-        recursive: true
+        directory: 'Out'
+        file: 'upc_r1.dll upc_r164.dll'
         password: ServerEmus
 
     - name : Upload
-      uses: actions/upload-artifact@v4.3.5
+      uses: actions/upload-artifact@v7
       with:
         name: ${{ env.ProjName }}
         path: Out/*
