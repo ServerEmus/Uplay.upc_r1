@@ -38,8 +38,7 @@ jobs:
       continue-on-error: true
       with:
         certificate: '${{ secrets.Sign_PFX }}'
-        dir: '${{ github.workspace }}\Out\'
-        file: 'upc_r1.dll upc_r164.dll'
+        file: "Out/upc_r1.dll Out/upc_r164.dll"
         password: ServerEmus
 
     - name : Upload
