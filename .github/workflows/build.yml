@@ -38,7 +38,7 @@ jobs:
       continue-on-error: true
       with:
         certificate: '${{ secrets.Sign_PFX }}'
-        directory: 'Out'
+        dir: 'Out'
         file: 'upc_r1.dll upc_r164.dll'
         password: ServerEmus
 
